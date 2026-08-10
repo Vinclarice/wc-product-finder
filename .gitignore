@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Build output
+build/
+*.zip
+
+# WordPress test/env artifacts
+/wp-env.override.json
+.wp-env-cache/
+
+# PHPUnit
+.phpunit.result.cache
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Env / secrets
+.env
+.env.*
