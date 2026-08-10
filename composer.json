@@ -1,0 +1,22 @@
+{
+	"name": "product-finder/product-finder",
+	"description": "A Gutenberg-native product finder for WooCommerce block-theme stores.",
+	"type": "wordpress-plugin",
+	"license": "GPL-2.0-or-later",
+	"require": {
+		"php": ">=7.4"
+	},
+	"require-dev": {
+		"phpunit/phpunit": "^9.6"
+	},
+	"autoload": {
+		"psr-4": {
+			"ProductFinder\\": "includes/"
+		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"ProductFinder\\Tests\\": "tests/php/"
+		}
+	}
+}

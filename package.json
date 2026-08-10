@@ -14,7 +14,9 @@
 		"plugin-zip": "wp-scripts plugin-zip",
 		"start": "wp-scripts start --webpack-copy-php --blocks-manifest",
 		"env": "wp-env",
-		"postinstall": "node scripts/fix-wp-env-dns.js"
+		"postinstall": "node scripts/fix-wp-env-dns.js",
+		"test:php": "wp-env run cli bash -c \"cd /var/www/html/wp-content/plugins/product-finder && vendor/bin/phpunit\"",
+		"composer": "wp-env run cli bash -c \"cd /var/www/html/wp-content/plugins/product-finder && composer\""
 	},
 	"dependencies": {
 		"@wordpress/block-editor": "latest",
