@@ -16,7 +16,8 @@
 		"env": "wp-env",
 		"postinstall": "node scripts/fix-wp-env-dns.js",
 		"test:php": "wp-env run cli bash -c \"cd /var/www/html/wp-content/plugins/product-finder && vendor/bin/phpunit\"",
-		"composer": "wp-env run cli bash -c \"cd /var/www/html/wp-content/plugins/product-finder && composer\""
+		"composer": "wp-env run cli bash -c \"cd /var/www/html/wp-content/plugins/product-finder && composer\"",
+		"seed": "wp-env run cli wp eval-file wp-content/plugins/product-finder/scripts/seed-tents.php"
 	},
 	"dependencies": {
 		"@wordpress/block-editor": "latest",
