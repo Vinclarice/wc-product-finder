@@ -1,10 +1,38 @@
-# Dependencies
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Coverage directory used by tools like istanbul
+coverage
+
+# Compiled binary addons (https://nodejs.org/api/addons.html)
+build/Release
+
+# Dependency directories
 node_modules/
 vendor/
 
-# Build output
-build/
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Output of `npm pack`
+*.tgz
+
+# Output of `wp-scripts plugin-zip`
 *.zip
+
+# dotenv environment variables file
+.env
+.env.*
+
+# Compiled block output (run `npm run build` to regenerate)
+build/
 
 # WordPress test/env artifacts
 /wp-env.override.json
@@ -18,7 +46,3 @@ build/
 .idea/
 .DS_Store
 Thumbs.db
-
-# Env / secrets
-.env
-.env.*
