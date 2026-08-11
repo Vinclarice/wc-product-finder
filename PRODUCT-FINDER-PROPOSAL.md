@@ -133,8 +133,8 @@ Given this is a first plugin, a first WooCommerce integration, and a first TDD p
 5. **Wire the tested rule engine into the server render.** Replace the hardcoded list with real calls to the engine from step 2, using seed data. Existing engine tests already cover correctness; add integration tests only for the wiring itself (does the render callback pass the right inputs, does it handle zero-match).
 6. **Interactivity API wiring.** Wire questions → local state → client-side re-render, calling the same matching logic. Decide explicitly here whether the JS side reimplements the engine (mirror the shared fixture file from §9) or the PHP engine is exposed via a lightweight endpoint the client calls — write that decision down, since duplicated logic without shared fixtures is exactly how the two drift.
 7. **Attribute mapping UI + completeness view.** Build the admin screen that lets a real merchant map their own attributes, backed by the already-tested completeness calculation from step 2. Scoped to attribute mapping only — see §13 for the question-customization boundary this step deliberately doesn't cover yet.
-8. **Starter template packaging, accessibility pass, no-JS fallback**, plus the small Playwright e2e suite from §9.
-9. **Basic local event counts.**
+8. ✅ **Done.** Starter template packaging, accessibility pass, no-JS fallback, plus the small Playwright e2e suite from §9.
+9. ✅ **Done.** Basic local event counts, plus Add to Cart on results.
 
 ## 11. Differentiation (unchanged, still holds)
 
