@@ -41,9 +41,10 @@ build/
 # PHPUnit
 .phpunit.result.cache
 
-# Playwright e2e artifacts (traces, reports)
+# Playwright e2e artifacts (traces, reports, saved auth session cookies)
 /test-results/
 /tests/e2e/playwright-report/
+/artifacts/
 
 # Editor / OS
 .vscode/

@@ -1,3 +1,4 @@
+const path = require( 'path' );
 const { defineConfig, devices } = require( '@playwright/test' );
 
 /**
@@ -20,6 +21,14 @@ const { defineConfig, devices } = require( '@playwright/test' );
  */
 
 const WP_BASE_URL = process.env.WP_BASE_URL || 'http://localhost:8888';
+// Matches the default STORAGE_STATE_PATH computation in
+// @wordpress/e2e-test-utils-playwright's worker-scoped `requestUtils`
+// fixture, and the path global-setup.js logs in and saves to. Setting it
+// here is what makes the *browser* context (not just requestUtils's API
+// request context) start each test already authenticated.
+const STORAGE_STATE_PATH =
+	process.env.STORAGE_STATE_PATH ||
+	path.join( __dirname, '..', '..', 'artifacts/storage-states/admin.json' );
 
 module.exports = defineConfig( {
 	testDir: __dirname,
@@ -38,6 +47,7 @@ module.exports = defineConfig( {
 	reporter: [ [ 'list' ] ],
 	use: {
 		baseURL: WP_BASE_URL,
+		storageState: STORAGE_STATE_PATH,
 		actionTimeout: 15_000,
 		navigationTimeout: 45_000,
 		trace: 'retain-on-failure',
