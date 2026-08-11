@@ -16,6 +16,12 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
+
+// Packaging for distribution (WordPress.org release build) needs to run
+// `composer install --no-dev` first so this file exists — see the "starter
+// template packaging" step in PRODUCT-FINDER-PROPOSAL.md's build order.
+require_once __DIR__ . '/vendor/autoload.php';
+
 /**
  * Registers the block(s) metadata from the `blocks-manifest.php` and registers the block type(s)
  * based on the registered block metadata. Behind the scenes, it registers also all assets so they can be enqueued

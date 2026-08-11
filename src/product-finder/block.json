@@ -8,6 +8,12 @@
 	"icon": "smiley",
 	"description": "A Gutenberg-native product finder for WooCommerce block-theme stores.",
 	"example": {},
+	"attributes": {
+		"productCategory": {
+			"type": "string",
+			"default": "tents"
+		}
+	},
 	"supports": {
 		"html": false
 	},
