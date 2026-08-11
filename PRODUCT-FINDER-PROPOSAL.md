@@ -115,6 +115,7 @@ TDD works cleanly on some layers of this plugin and only loosely on others. Be d
 
 **Thin coverage, checked manually or via a handful of e2e runs, not unit-tested exhaustively:**
 - Visual/markup output of block editor UI, exact CSS, admin screen layout. Use `@wordpress/e2e-test-utils-playwright` against `wp-env` for a small number of critical-path scenarios (answer questions → see filtered results update → add to cart; zero-match fallback triggers and explains itself) rather than trying to unit-test markup.
+- **A real lesson from build order step 8, worth remembering:** WP-CLI-based manual verification (`wp eval`, `render_block()` calls) is not a substitute for an actual front-end HTTP request — a bug where `render.php` called an admin-only function (`submit_button()`, only autoloaded on `wp-admin` requests) fatal-errored the block for every real visitor, but was invisible to every WP-CLI check because WP-CLI's execution context has different functions available than the public front end. The Playwright e2e suite caught it on the first real browser run. Treat WP-CLI verification as good for data/logic correctness, not as proof a page actually loads.
 
 **Toolchain:**
 - PHP: PHPUnit, run via `wp-env`'s built-in test environment (`wp-env run tests-cli --env-cwd=wp-content/plugins/<plugin> phpunit`). Keep the pure rule-engine tests runnable without wp-env at all (plain `phpunit` on a WordPress-free class) for fast local iteration.
