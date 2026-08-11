@@ -17,7 +17,8 @@
 	},
 	"autoload-dev": {
 		"psr-4": {
-			"ProductFinder\\Tests\\": "tests/php/"
+			"ProductFinder\\Tests\\": "tests/php/",
+			"ProductFinder\\Tests\\Integration\\": "tests/integration/"
 		}
 	}
 }

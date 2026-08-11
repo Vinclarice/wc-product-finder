@@ -2,9 +2,11 @@
 /**
  * PHP file to use when rendering the block type on the server to show on the front end.
  *
- * Static skeleton (build order step 4): shows the top 3 published products in
- * the block's configured category. No questions/matching yet — that's wired
- * in at step 5 (§10 of PRODUCT-FINDER-PROPOSAL.md).
+ * Server-rendered default state (build order step 5): the "no questions answered
+ * yet" view — every candidate product in the category, ranked by MatchEngine with
+ * no rules applied (so the tiebreaker alone decides order) and capped to 3. This
+ * same code path doubles as the eventual no-JavaScript fallback content (§8 MVP).
+ * Real shopper-driven rules are wired in client-side at step 6 (Interactivity API).
  *
  * The following variables are exposed to the file:
  *     $attributes (array): The block attributes.
@@ -14,19 +16,32 @@
  * @see https://github.com/WordPress/gutenberg/blob/trunk/docs/reference-guides/block-api/block-metadata.md#render
  */
 
-use ProductFinder\Query\ProductQuery;
+use ProductFinder\Finder\FinderService;
 
 $product_category = $attributes['productCategory'] ?? 'tents';
-$products          = class_exists( 'WooCommerce' ) ? ProductQuery::for_category( $product_category, 3 ) : array();
+$result            = class_exists( 'WooCommerce' )
+	? FinderService::get_results(
+		$product_category,
+		array(),
+		array(
+			'tiebreaker' => array(
+				'attribute' => 'price',
+				'direction' => 'asc',
+			),
+			'limit'      => 3,
+		)
+	)
+	: array( 'products' => array() );
 ?>
 <div <?php echo get_block_wrapper_attributes(); ?>>
-	<?php if ( empty( $products ) ) : ?>
+	<?php if ( empty( $result['products'] ) ) : ?>
 		<p>
 			<?php esc_html_e( 'No products found for this category yet.', 'product-finder' ); ?>
 		</p>
 	<?php else : ?>
 		<ul class="product-finder__results">
-			<?php foreach ( $products as $product ) : ?>
+			<?php foreach ( $result['products'] as $entry ) : ?>
+				<?php $product = $entry['product']['_product']; ?>
 				<li class="product-finder__result">
 					<a href="<?php echo esc_url( $product->get_permalink() ); ?>">
 						<?php echo esc_html( $product->get_name() ); ?>
