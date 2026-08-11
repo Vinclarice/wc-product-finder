@@ -5,6 +5,13 @@
 	"author": "The WordPress Contributors",
 	"license": "GPL-2.0-or-later",
 	"main": "build/index.js",
+	"files": [
+		"build",
+		"includes",
+		"vendor",
+		"product-finder.php",
+		"readme.txt"
+	],
 	"scripts": {
 		"build": "cross-env WP_EXPERIMENTAL_MODULES=true wp-scripts build --webpack-copy-php --blocks-manifest",
 		"format": "wp-scripts format",
@@ -19,7 +26,8 @@
 		"composer": "wp-env run cli bash -c \"cd /var/www/html/wp-content/plugins/product-finder && composer\"",
 		"seed": "wp-env run cli wp eval-file wp-content/plugins/product-finder/scripts/seed-tents.php",
 		"test:php:integration": "wp-env run tests-cli bash -c \"cd /var/www/html/wp-content/plugins/product-finder && vendor/bin/phpunit -c phpunit-integration.xml\"",
-		"test:js": "wp-scripts test-unit-js"
+		"test:js": "wp-scripts test-unit-js",
+		"package": "npm run build && wp-env run cli bash -c \"cd /var/www/html/wp-content/plugins/product-finder && composer install --no-dev --optimize-autoloader\" && wp-scripts plugin-zip"
 	},
 	"dependencies": {
 		"@wordpress/block-editor": "latest",
