@@ -116,6 +116,91 @@ final class AttributeDiscoveryTest extends WP_UnitTestCase {
 		);
 	}
 
+	public function test_distinct_values_returns_every_real_value_used_in_the_category_sorted(): void {
+		$category_id = wp_insert_term( 'Tents', 'product_cat' )['term_id'];
+
+		foreach ( array( '4', '2', '10' ) as $capacity ) {
+			$product = new WC_Product_Simple();
+			$product->set_name( "Tent {$capacity}" );
+			$product->set_category_ids( array( $category_id ) );
+			$product->set_attributes( array( self::make_local_attribute( 'Capacity', $capacity ) ) );
+			$product->save();
+		}
+
+		$values = AttributeDiscovery::distinct_values_for_attribute( 'tents', 'capacity' );
+
+		// Natural sort, not lexical — "10" comes after "4", not between "1" and "2".
+		$this->assertSame(
+			array(
+				array(
+					'value' => '2',
+					'label' => '2',
+				),
+				array(
+					'value' => '4',
+					'label' => '4',
+				),
+				array(
+					'value' => '10',
+					'label' => '10',
+				),
+			),
+			$values
+		);
+	}
+
+	public function test_distinct_values_deduplicates_repeated_real_values(): void {
+		$category_id = wp_insert_term( 'Tents', 'product_cat' )['term_id'];
+
+		foreach ( array( 'Tent A', 'Tent B' ) as $name ) {
+			$product = new WC_Product_Simple();
+			$product->set_name( $name );
+			$product->set_category_ids( array( $category_id ) );
+			$product->set_attributes( array( self::make_local_attribute( 'Capacity', '4' ) ) );
+			$product->save();
+		}
+
+		$values = AttributeDiscovery::distinct_values_for_attribute( 'tents', 'capacity' );
+
+		$this->assertCount( 1, $values );
+	}
+
+	public function test_distinct_values_resolves_a_taxonomy_attributes_term_names_not_ids(): void {
+		$category_id = wp_insert_term( 'Tents', 'product_cat' )['term_id'];
+
+		$product = new WC_Product_Simple();
+		$product->set_name( 'Taxonomy Tent' );
+		$product->set_category_ids( array( $category_id ) );
+		$id = $product->save();
+
+		$taxonomy_attribute = self::make_taxonomy_attribute( $id, 'Discovery Test Season', '3-season' );
+
+		$product = wc_get_product( $id );
+		$product->set_attributes( array( $taxonomy_attribute ) );
+		$product->save();
+
+		$values = AttributeDiscovery::distinct_values_for_attribute(
+			'tents',
+			wc_attribute_taxonomy_name( 'Discovery Test Season' )
+		);
+
+		$this->assertSame(
+			array(
+				array(
+					'value' => '3-season',
+					'label' => '3-season',
+				),
+			),
+			$values
+		);
+	}
+
+	public function test_distinct_values_for_an_unused_attribute_is_empty(): void {
+		wp_insert_term( 'Tents', 'product_cat' );
+
+		$this->assertSame( array(), AttributeDiscovery::distinct_values_for_attribute( 'tents', 'capacity' ) );
+	}
+
 	private static function find_by( array $rows, string $key, $value ): array {
 		foreach ( $rows as $row ) {
 			if ( $row[ $key ] === $value ) {

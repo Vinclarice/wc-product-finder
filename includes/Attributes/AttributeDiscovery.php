@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ProductFinder\Attributes;
 
+use ProductFinder\Query\AttributeValueResolver;
 use ProductFinder\Query\ProductQuery;
 
 /**
@@ -65,5 +66,44 @@ final class AttributeDiscovery {
 			$rows[] = $row;
 		}
 		return $rows;
+	}
+
+	/**
+	 * Every distinct real value used for a WooCommerce attribute across a
+	 * category's products, sorted naturally rather than lexically (so "10"
+	 * sorts after "4", not between "1" and "2") — populates the per-category
+	 * question editor's select-type answer options (§13, Phase 3) from real
+	 * store data, rather than asking a merchant to type/guess values that
+	 * have to exactly match what's actually stored.
+	 *
+	 * @return array<int, array{value: string, label: string}>
+	 */
+	public static function distinct_values_for_attribute( string $category_slug, string $wc_attribute_slug ): array {
+		$products = ProductQuery::for_category( $category_slug, -1 );
+
+		$values = array();
+		foreach ( $products as $product ) {
+			$value = AttributeValueResolver::resolve( $product, $wc_attribute_slug );
+			if ( null !== $value ) {
+				$values[] = $value;
+			}
+		}
+
+		// array_unique(), not an associative-array-as-a-set — PHP silently
+		// casts numeric-looking string array *keys* ("4") to actual ints,
+		// which would turn every numeric attribute's values into integers
+		// here (confirmed empirically: 'value' => '4' became 'value' => 4).
+		// array_unique() dedupes by value, not key, so it doesn't have that
+		// problem.
+		$distinct = array_values( array_unique( $values ) );
+		sort( $distinct, SORT_NATURAL | SORT_FLAG_CASE );
+
+		return array_map(
+			static fn( $value ) => array(
+				'value' => $value,
+				'label' => $value,
+			),
+			$distinct
+		);
 	}
 }
