@@ -2,7 +2,8 @@
 /**
  * Template partial for SettingsPage::render(). Expects (from the calling
  * scope): $categories, $selected_category, $selected_category_name,
- * $discovered, $completeness, $current_map, $template_map, $usage_counts.
+ * $discovered, $completeness, $current_map, $template_map, $usage_counts,
+ * $has_custom_questions, $question_rows, $attribute_labels.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -127,7 +128,102 @@ if ( ! defined( 'ABSPATH' ) ) {
 					</tr>
 				<?php endforeach; ?>
 			</table>
-			<?php submit_button( __( 'Save mapping', 'product-finder' ) ); ?>
+
+			<h2><?php esc_html_e( 'Questions', 'product-finder' ); ?></h2>
+			<p class="description">
+				<?php if ( $has_custom_questions ) : ?>
+					<?php esc_html_e( 'This category has its own custom questions. Clear a row\'s attribute to remove that question, or change it to reassign the slot.', 'product-finder' ); ?>
+				<?php else : ?>
+					<?php esc_html_e( 'Pre-filled with the Outdoor Gear Finder starter template\'s questions — edit freely and save to make them custom to this category. Answer choices are the real values found on this category\'s products; save again after adding products or attribute values to refresh them.', 'product-finder' ); ?>
+				<?php endif; ?>
+			</p>
+			<table class="widefat">
+				<thead>
+					<tr>
+						<th><?php esc_html_e( 'Attribute', 'product-finder' ); ?></th>
+						<th><?php esc_html_e( 'Question text', 'product-finder' ); ?></th>
+						<th><?php esc_html_e( 'Short label', 'product-finder' ); ?></th>
+						<th><?php esc_html_e( 'Filter type', 'product-finder' ); ?></th>
+						<th><?php esc_html_e( 'Comparator', 'product-finder' ); ?></th>
+						<th><?php esc_html_e( 'Weight', 'product-finder' ); ?></th>
+						<th><?php esc_html_e( 'Answer input', 'product-finder' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+					<?php foreach ( $question_rows as $row_index => $row ) : ?>
+						<?php
+						$row_attribute   = $row['attribute'] ?? '';
+						$row_rule_type   = $row['ruleType'] ?? 'soft';
+						$row_comparator  = $row['comparator'] ?? 'equals';
+						$row_input_type  = $row['input']['type'] ?? 'select';
+						$row_options     = $row['input']['options'] ?? array();
+						$field           = static fn( string $name ) => "questions[{$row_index}][{$name}]";
+						?>
+						<tr>
+							<td>
+								<select name="<?php echo esc_attr( $field( 'attribute' ) ); ?>">
+									<option value=""><?php esc_html_e( '— Not used —', 'product-finder' ); ?></option>
+									<?php foreach ( $attribute_labels as $attribute_key => $attribute_label ) : ?>
+										<option value="<?php echo esc_attr( $attribute_key ); ?>" <?php selected( $row_attribute, $attribute_key ); ?>>
+											<?php echo esc_html( $attribute_label ); ?>
+										</option>
+									<?php endforeach; ?>
+								</select>
+							</td>
+							<td>
+								<input type="text" class="regular-text" name="<?php echo esc_attr( $field( 'label' ) ); ?>" value="<?php echo esc_attr( $row['label'] ?? '' ); ?>" />
+							</td>
+							<td>
+								<input type="text" name="<?php echo esc_attr( $field( 'shortLabel' ) ); ?>" value="<?php echo esc_attr( $row['shortLabel'] ?? '' ); ?>" />
+							</td>
+							<td>
+								<label>
+									<input type="radio" name="<?php echo esc_attr( $field( 'ruleType' ) ); ?>" value="hard" <?php checked( $row_rule_type, 'hard' ); ?> />
+									<?php esc_html_e( 'Hard filter', 'product-finder' ); ?>
+								</label><br />
+								<label>
+									<input type="radio" name="<?php echo esc_attr( $field( 'ruleType' ) ); ?>" value="soft" <?php checked( $row_rule_type, 'soft' ); ?> />
+									<?php esc_html_e( 'Soft preference', 'product-finder' ); ?>
+								</label>
+							</td>
+							<td>
+								<select name="<?php echo esc_attr( $field( 'comparator' ) ); ?>">
+									<option value="gte" <?php selected( $row_comparator, 'gte' ); ?>><?php esc_html_e( 'At least', 'product-finder' ); ?></option>
+									<option value="lte" <?php selected( $row_comparator, 'lte' ); ?>><?php esc_html_e( 'At most', 'product-finder' ); ?></option>
+									<option value="equals" <?php selected( $row_comparator, 'equals' ); ?>><?php esc_html_e( 'Exactly', 'product-finder' ); ?></option>
+								</select>
+							</td>
+							<td>
+								<input type="number" min="1" step="1" class="small-text" name="<?php echo esc_attr( $field( 'weight' ) ); ?>" value="<?php echo esc_attr( $row['weight'] ?? 1 ); ?>" />
+							</td>
+							<td>
+								<label>
+									<input type="radio" name="<?php echo esc_attr( $field( 'inputType' ) ); ?>" value="select" <?php checked( $row_input_type, 'select' ); ?> />
+									<?php esc_html_e( 'Choices', 'product-finder' ); ?>
+								</label>
+								<label>
+									<input type="radio" name="<?php echo esc_attr( $field( 'inputType' ) ); ?>" value="toggle" <?php checked( $row_input_type, 'toggle' ); ?> />
+									<?php esc_html_e( 'Yes/no toggle', 'product-finder' ); ?>
+								</label>
+								<?php if ( 'toggle' === $row_input_type ) : ?>
+									<br />
+									<input type="number" step="any" class="small-text" name="<?php echo esc_attr( $field( 'toggleThreshold' ) ); ?>" value="<?php echo esc_attr( $row['input']['value'] ?? '' ); ?>" placeholder="<?php esc_attr_e( 'Threshold', 'product-finder' ); ?>" />
+								<?php elseif ( ! empty( $row_options ) ) : ?>
+									<br />
+									<small>
+										<?php echo esc_html( implode( ', ', wp_list_pluck( $row_options, 'label' ) ) ); ?>
+									</small>
+								<?php elseif ( '' !== $row_attribute ) : ?>
+									<br />
+									<small><?php esc_html_e( 'No real values found yet for this attribute in this category.', 'product-finder' ); ?></small>
+								<?php endif; ?>
+							</td>
+						</tr>
+					<?php endforeach; ?>
+				</tbody>
+			</table>
+
+			<?php submit_button( __( 'Save mapping and questions', 'product-finder' ) ); ?>
 		</form>
 	<?php endif; ?>
 </div>
