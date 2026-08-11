@@ -4,9 +4,11 @@
  * Server-embedded initial state (via wp_interactivity_state() in render.php)
  * supplies `products` (every candidate in the category), `questions` (the
  * starter template's question config), `relaxationOrder`, and `answers`
- * (starts as every question key mapped to null). This module only adds the
- * reactive `results` getter and the `setAnswer` action — everything needed
- * to compute results already lives in state, seeded once from the server.
+ * (seeded from $_GET so a shared/bookmarked filtered URL shows the same
+ * thing before and after hydration — see render.php and RuleBuilder for
+ * the no-JS fallback this shares state with). This module only adds the
+ * reactive `results` getter and the `setAnswer`/`preventFormSubmit`
+ * actions — everything needed to compute results already lives in state.
  * No request back to the server happens per answer (§7 of the proposal).
  */
 
@@ -40,6 +42,14 @@ const { state } = store( 'product-finder', {
 					? event.target.checked
 					: event.target.value;
 			state.answers[ questionKey ] = value;
+		},
+		// The <form> exists for the no-JS fallback (build order step 8) — a
+		// JS-enabled visitor's answers already update instantly via
+		// setAnswer, so an actual form submission/page reload here would
+		// only happen accidentally (e.g. an Enter keypress) and should be
+		// swallowed rather than navigating away.
+		preventFormSubmit( event ) {
+			event.preventDefault();
 		},
 	},
 } );
