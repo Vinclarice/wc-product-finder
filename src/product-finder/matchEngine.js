@@ -17,7 +17,16 @@ const comparators = {
 };
 
 function satisfies( product, rule ) {
-	return comparators[ rule.comparator ]( product[ rule.attribute ], rule.value );
+	const actual = product[ rule.attribute ] ?? null;
+	// Missing data can't satisfy any comparator — without this guard, a
+	// product missing the compared attribute would silently pass an lte
+	// filter as if its value were 0 (null <= a non-negative threshold is
+	// true in JS too), while incorrectly *failing* the equivalent gte filter
+	// only by accident of comparison semantics, not by design.
+	if ( actual === null ) {
+		return false;
+	}
+	return comparators[ rule.comparator ]( actual, rule.value );
 }
 
 function satisfiesAll( product, rules ) {

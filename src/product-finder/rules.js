@@ -16,7 +16,15 @@ export function shouldIncludeRule( question, answerValue ) {
 	if ( question.input.type === 'toggle' ) {
 		return answerValue === true;
 	}
-	return answerValue !== undefined && answerValue !== null && answerValue !== '';
+	if ( answerValue === undefined || answerValue === null || answerValue === '' ) {
+		return false;
+	}
+	// A malformed answer to a numeric question (only reachable by tampering
+	// with the DOM directly, since <select> option values are always
+	// well-formed) is treated as unanswered rather than coerced — kept in
+	// sync with RuleBuilder.php's equivalent guard for the no-JS $_GET path.
+	const isNumericType = question.valueType === 'int' || question.valueType === 'float';
+	return ! isNumericType || ! Number.isNaN( Number( answerValue ) );
 }
 
 export function buildRule( question, answerValue ) {

@@ -129,7 +129,16 @@ final class MatchEngine {
 	}
 
 	private static function satisfies( array $product, array $rule ): bool {
+		$actual = $product[ $rule['attribute'] ] ?? null;
+		// Missing data can't satisfy any comparator — without this guard, a
+		// product missing the compared attribute would silently pass an lte
+		// filter as if its value were 0 (null <= a non-negative threshold is
+		// true), while incorrectly *failing* the equivalent gte filter only
+		// by accident of comparison semantics, not by design.
+		if ( $actual === null ) {
+			return false;
+		}
 		$comparator = self::comparators()[ $rule['comparator'] ];
-		return $comparator( $product[ $rule['attribute'] ], $rule['value'] );
+		return $comparator( $actual, $rule['value'] );
 	}
 }

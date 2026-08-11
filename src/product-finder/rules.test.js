@@ -84,6 +84,15 @@ describe( 'buildRules', () => {
 		] );
 	} );
 
+	test( 'a non-numeric answer to a numeric question is treated as unanswered', () => {
+		// Kept in sync with RuleBuilder.php's equivalent guard: without this,
+		// PHP would silently coerce a malformed answer to 0 (near-always-
+		// permissive) while JS would produce NaN (always-false) for the same
+		// input — the two paths diverging on the same URL/state.
+		const answers = { capacity: 'abc' };
+		expect( buildRules( [ CAPACITY_QUESTION ], answers ) ).toEqual( [] );
+	} );
+
 	test( 'a toggle question is included only when checked, using its fixed threshold', () => {
 		expect( buildRules( [ PACKED_WEIGHT_QUESTION ], { packed_weight: false } ) ).toEqual( [] );
 		expect( buildRules( [ PACKED_WEIGHT_QUESTION ], { packed_weight: null } ) ).toEqual( [] );

@@ -35,7 +35,16 @@ final class RuleBuilder {
 		}
 
 		$value = $answers[ $question['key'] ] ?? null;
-		return $value !== null && $value !== '';
+		if ( $value === null || $value === '' ) {
+			return false;
+		}
+
+		// A malformed no-JS $_GET value for a numeric question (e.g. a
+		// hand-crafted or bot-submitted URL) is treated as unanswered rather
+		// than coerced — casting garbage to 0 would silently produce a
+		// near-always-permissive filter instead of just skipping the rule.
+		$is_numeric_type = in_array( $question['valueType'], array( 'int', 'float' ), true );
+		return ! $is_numeric_type || is_numeric( $value );
 	}
 
 	private static function build_rule( array $question, $answer_value ): array {

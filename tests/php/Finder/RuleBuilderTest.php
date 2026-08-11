@@ -122,6 +122,19 @@ final class RuleBuilderTest extends TestCase {
 		);
 	}
 
+	public function test_a_non_numeric_answer_to_a_numeric_question_is_treated_as_unanswered(): void {
+		// Without this, a malformed/crafted no-JS URL like
+		// ?product_finder[tents][capacity]=abc would silently coerce to 0
+		// (a near-always-permissive filter) instead of behaving as if the
+		// shopper never answered — and diverge from the JS-driven path,
+		// which produces NaN (an always-false filter) for the same input.
+		$answers = array( 'capacity' => 'abc' );
+		$this->assertSame(
+			array(),
+			RuleBuilder::build( array( self::CAPACITY_QUESTION ), $answers )
+		);
+	}
+
 	public function test_a_toggle_question_is_included_only_when_its_key_is_present(): void {
 		$this->assertSame(
 			array(),
