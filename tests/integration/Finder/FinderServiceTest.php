@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ProductFinder\Tests\Integration\Finder;
 
+use ProductFinder\Finder\ConfigRepository;
 use ProductFinder\Finder\FinderService;
 use ProductFinder\Tests\Integration\Support\WooCommerceProductFactory;
 use WC_Product_Simple;
@@ -84,6 +85,33 @@ final class FinderServiceTest extends WP_UnitTestCase {
 
 		$this->assertCount( 0, $result['products'] );
 		$this->assertSame( array(), $result['relaxedAttributes'] );
+	}
+
+	public function test_a_saved_attribute_map_override_is_used_instead_of_the_template_default(): void {
+		// This product uses a non-default slug ("tent-capacity") for capacity —
+		// with no override saved, ProductArrayAdapter wouldn't find it there.
+		$product = new WC_Product_Simple();
+		$product->set_name( 'Custom Slug Tent' );
+		$product->set_status( 'publish' );
+		$product->set_category_ids( array( $this->category_id ) );
+		$product->set_attributes( array( self::make_local_attribute( 'Tent Capacity', '4' ) ) );
+		$product->save();
+
+		ConfigRepository::save_attribute_map( 'tents', array( 'capacity' => 'tent-capacity' ) );
+
+		$rules = array(
+			array(
+				'attribute'  => 'capacity',
+				'type'       => 'hard',
+				'comparator' => 'gte',
+				'value'      => 4,
+			),
+		);
+
+		$result = FinderService::get_results( 'tents', $rules );
+
+		$this->assertCount( 1, $result['products'] );
+		$this->assertSame( 'Custom Slug Tent', $result['products'][0]['product']['name'] );
 	}
 
 	private function create_tent( string $name, int $capacity, float $packed_weight, int $season_rating, string $use_type, float $price ): void {

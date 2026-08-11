@@ -12,9 +12,9 @@ use ProductFinder\Templates\TentsTemplate;
 /**
  * Ties the WooCommerce data layer to the WordPress-free MatchEngine: fetches
  * every published product in a category, adapts each to the engine's plain
- * array shape, and returns the match result. The starter template's
- * attribute map (§5c) is hardcoded here for now — it becomes merchant-
- * configurable once the attribute-mapping admin screen ships (build order step 7).
+ * array shape, and returns the match result. The attribute map used is the
+ * starter template's defaults with any merchant-saved overrides merged in
+ * (build order step 7 / §5c) — see AttributeMapResolver and ConfigRepository.
  */
 final class FinderService {
 
@@ -26,10 +26,14 @@ final class FinderService {
 	 * a request back to the server per answer.
 	 */
 	public static function get_candidates( string $category_slug ): array {
-		$products = ProductQuery::for_category( $category_slug, -1 );
+		$products      = ProductQuery::for_category( $category_slug, -1 );
+		$attribute_map = AttributeMapResolver::resolve(
+			TentsTemplate::attribute_map(),
+			ConfigRepository::get_attribute_map( $category_slug )
+		);
 
 		return array_map(
-			static fn( $product ) => ProductArrayAdapter::to_array( $product, TentsTemplate::attribute_map() ),
+			static fn( $product ) => ProductArrayAdapter::to_array( $product, $attribute_map ),
 			$products
 		);
 	}

@@ -34,3 +34,16 @@ function product_finder_product_finder_block_init() {
 	wp_register_block_types_from_metadata_collection( __DIR__ . '/build', __DIR__ . '/build/blocks-manifest.php' );
 }
 add_action( 'init', 'product_finder_product_finder_block_init' );
+
+/**
+ * The attribute-mapping admin screen (build order step 7) needs WooCommerce
+ * active — its own data (categories, attributes) doesn't exist otherwise.
+ * Hooked to woocommerce_loaded (fired once WooCommerce's own bootstrap is
+ * done) rather than plugins_loaded, since a class_exists( 'WooCommerce' )
+ * check on plugins_loaded would race against WooCommerce defining its own
+ * class inside its own plugins_loaded callback.
+ */
+function product_finder_register_admin_page() {
+	\ProductFinder\Admin\SettingsPage::register();
+}
+add_action( 'woocommerce_loaded', 'product_finder_register_admin_page' );
