@@ -1,9 +1,20 @@
 /**
- * The following styles get applied inside the editor only.
- *
- * Replace them with your own styles or remove the file completely.
+ * Editor-only styles for the Product Finder block canvas. edit.js has no
+ * live results preview by design (see its own docblock) — the canvas is
+ * just a one-line text preview of the selected category, styled here as a
+ * plain block placeholder rather than the default create-block red dotted
+ * border.
  */
 
 .wp-block-product-finder-product-finder {
-	border: 1px dotted #f00;
+	border: 1px dashed #757575;
+	border-radius: 4px;
+	background-color: #f9f9f9;
+	padding: 1.5rem;
+
+	p {
+		margin: 0;
+		color: #50575e;
+		font-size: 0.9375rem;
+	}
 }

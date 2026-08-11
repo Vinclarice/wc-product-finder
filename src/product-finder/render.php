@@ -228,7 +228,7 @@ wp_interactivity_state(
 				</label>
 			<?php endforeach; ?>
 			</div>
-			<button type="button" class="button" data-wp-on--click="actions.reset">
+			<button type="button" class="button product-finder__reset" data-wp-on--click="actions.reset">
 				<?php esc_html_e( 'Reset', 'product-finder' ); ?>
 			</button>
 			<noscript>
@@ -243,7 +243,7 @@ wp_interactivity_state(
 			}
 			submit_button( $heading, 'primary', '', false );
 			?>
-			<a class="button" href="<?php echo esc_url( remove_query_arg( 'product_finder' ) ); ?>">
+			<a class="button product-finder__reset" href="<?php echo esc_url( remove_query_arg( 'product_finder' ) ); ?>">
 				<?php esc_html_e( 'Reset', 'product-finder' ); ?>
 			</a>
 		</noscript>
