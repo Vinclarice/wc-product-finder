@@ -131,7 +131,17 @@ wp_interactivity_state(
 			<?php endforeach; ?>
 		</div>
 		<noscript>
-			<?php submit_button( __( 'Find your tent', 'product-finder' ), 'primary', '', false ); ?>
+			<?php
+			// submit_button() lives in wp-admin/includes/template.php, which
+			// WordPress only autoloads for wp-admin requests — not here, on a
+			// public front-end page. Without this, every real (non-admin)
+			// visitor gets a fatal "Call to undefined function" on this block,
+			// no-JS or not.
+			if ( ! function_exists( 'submit_button' ) ) {
+				require_once ABSPATH . 'wp-admin/includes/template.php';
+			}
+			submit_button( __( 'Find your tent', 'product-finder' ), 'primary', '', false );
+			?>
 		</noscript>
 	</form>
 

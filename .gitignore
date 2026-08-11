@@ -41,6 +41,10 @@ build/
 # PHPUnit
 .phpunit.result.cache
 
+# Playwright e2e artifacts (traces, reports)
+/test-results/
+/tests/e2e/playwright-report/
+
 # Editor / OS
 .vscode/
 .idea/

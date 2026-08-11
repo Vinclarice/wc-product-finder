@@ -27,6 +27,7 @@
 		"seed": "wp-env run cli wp eval-file wp-content/plugins/product-finder/scripts/seed-tents.php",
 		"test:php:integration": "wp-env run tests-cli bash -c \"cd /var/www/html/wp-content/plugins/product-finder && vendor/bin/phpunit -c phpunit-integration.xml\"",
 		"test:js": "wp-scripts test-unit-js",
+		"test:e2e": "playwright test --config=tests/e2e/playwright.config.js",
 		"package": "npm run build && wp-env run cli bash -c \"cd /var/www/html/wp-content/plugins/product-finder && composer install --no-dev --optimize-autoloader\" && wp-scripts plugin-zip"
 	},
 	"dependencies": {
@@ -36,6 +37,8 @@
 		"@wordpress/interactivity": "latest"
 	},
 	"devDependencies": {
+		"@playwright/test": "^1.62.1",
+		"@wordpress/e2e-test-utils-playwright": "^1.52.0",
 		"@wordpress/env": "^11.12.0",
 		"@wordpress/scripts": "^34.0.0",
 		"cross-env": "^10.1.0"
