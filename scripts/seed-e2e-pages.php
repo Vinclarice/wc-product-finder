@@ -24,14 +24,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * @param string $slug
  * @param string $title
- * @param array<string, mixed> $block_attributes
+ * @param string[] $block_comments One or more `<!-- wp:product-finder/... -->` comments, in page order.
  */
-function product_finder_seed_e2e_page( string $slug, string $title, array $block_attributes ): void {
-	$block_comment = sprintf(
-		'<!-- wp:product-finder/product-finder %s /-->',
-		wp_json_encode( $block_attributes )
-	);
-
+function product_finder_seed_e2e_page_with_blocks( string $slug, string $title, array $block_comments ): void {
 	$existing = get_page_by_path( $slug, OBJECT, 'page' );
 
 	$post_args = array(
@@ -39,7 +34,7 @@ function product_finder_seed_e2e_page( string $slug, string $title, array $block
 		'post_title'   => $title,
 		'post_name'    => $slug,
 		'post_status'  => 'publish',
-		'post_content' => $block_comment,
+		'post_content' => implode( "\n\n", $block_comments ),
 	);
 
 	if ( $existing ) {
@@ -57,6 +52,19 @@ function product_finder_seed_e2e_page( string $slug, string $title, array $block
 	echo "Created page '{$slug}' (ID {$new_id}).\n";
 }
 
+/**
+ * @param string $slug
+ * @param string $title
+ * @param array<string, mixed> $block_attributes
+ */
+function product_finder_seed_e2e_page( string $slug, string $title, array $block_attributes ): void {
+	product_finder_seed_e2e_page_with_blocks(
+		$slug,
+		$title,
+		array( sprintf( '<!-- wp:product-finder/product-finder %s /-->', wp_json_encode( $block_attributes ) ) )
+	);
+}
+
 // Points the Product Finder block at a category slug with zero products, so
 // the zero-match fallback ("No products found for this category yet.") has
 // a deterministic page to render on, independent of the tent seed data or
@@ -65,4 +73,20 @@ product_finder_seed_e2e_page(
 	'e2e-empty-category',
 	'E2E Empty Category',
 	array( 'productCategory' => 'empty-category' )
+);
+
+// Two instances on one page, sharing the 'product-finder' Interactivity API
+// namespace - the real-world shape of the multi-instance state collision bug
+// (§5b of PRODUCT-FINDER-PROPOSAL.md advertises multiple finder instances).
+// Reuses the tents/empty-category fixtures above rather than seeding new
+// product data: if either instance's client-side state leaked into the
+// other's, the empty-category instance would start showing tent products or
+// its "no products" message would incorrectly disappear.
+product_finder_seed_e2e_page_with_blocks(
+	'e2e-multiple-instances',
+	'E2E Multiple Instances',
+	array(
+		sprintf( '<!-- wp:product-finder/product-finder %s /-->', wp_json_encode( array( 'productCategory' => 'tents' ) ) ),
+		sprintf( '<!-- wp:product-finder/product-finder %s /-->', wp_json_encode( array( 'productCategory' => 'empty-category' ) ) ),
+	)
 );

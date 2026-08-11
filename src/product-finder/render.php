@@ -12,6 +12,19 @@
  * each control's change event and updates instantly without a page reload
  * (§7 of PRODUCT-FINDER-PROPOSAL.md).
  *
+ * Multiple instances on one page: `products`, `questions`, `answers`, and
+ * `relaxationOrder` live in a per-block `data-wp-context` on the wrapper
+ * div, not in `wp_interactivity_state()` — state is a single namespace-wide
+ * object merged across every block via array_replace_recursive, so two
+ * instances sharing it corrupts both (confirmed via
+ * WP_Interactivity_API::state(), which is exactly this merge). Context is
+ * DOM-scoped per instance instead. `results`/`hasResults` stay on `state`
+ * (directives read `state.results...`), but are registered as *derived
+ * state* closures that call wp_interactivity_get_context() to compute
+ * per-instance — the server-side counterpart of the `getContext()`-based
+ * getters in view.js, and how the Interactivity API expects a shared-state
+ * getter to be scoped to the calling instance.
+ *
  * Known limitation: a native GET form submission replaces the whole query
  * string with only its own fields, so a second finder block (different
  * category) on the same page would lose its own answers if a no-JS visitor
@@ -70,10 +83,6 @@ if ( class_exists( 'WooCommerce' ) ) {
 } else {
 	$questions  = array();
 	$candidates = array();
-	$result     = array(
-		'products'          => array(),
-		'relaxedAttributes' => array(),
-	);
 }
 
 // The client's `answers` shape differs slightly from $_GET's for toggles: a
@@ -89,18 +98,41 @@ foreach ( $questions as $question ) {
 	}
 }
 
-wp_interactivity_state(
-	'product-finder',
+$instance_context = wp_json_encode(
 	array(
 		'products'        => $candidates,
 		'questions'       => $questions,
 		'answers'         => $initial_js_answers,
 		'relaxationOrder' => $match_options['relaxationOrder'],
-		'results'         => $result,
+	)
+);
+
+$compute_results = static function () use ( $match_options ) {
+	$instance = wp_interactivity_get_context();
+	$rules    = RuleBuilder::build( $instance['questions'] ?? array(), $instance['answers'] ?? array() );
+
+	return MatchEngine::match(
+		$instance['products'] ?? array(),
+		$rules,
+		array(
+			'tiebreaker'      => $match_options['tiebreaker'],
+			'limit'           => $match_options['limit'],
+			'relaxationOrder' => $instance['relaxationOrder'] ?? array(),
+		)
+	);
+};
+
+wp_interactivity_state(
+	'product-finder',
+	array(
+		'results'    => $compute_results,
+		'hasResults' => static function () use ( $compute_results ) {
+			return ! empty( $compute_results()['products'] );
+		},
 	)
 );
 ?>
-<div <?php echo get_block_wrapper_attributes(); ?> data-wp-interactive="product-finder">
+<div <?php echo get_block_wrapper_attributes(); ?> data-wp-interactive="product-finder" data-wp-context='<?php echo esc_attr( $instance_context ); ?>'>
 	<h2 class="product-finder__heading">
 		<?php esc_html_e( 'Find your tent', 'product-finder' ); ?>
 	</h2>

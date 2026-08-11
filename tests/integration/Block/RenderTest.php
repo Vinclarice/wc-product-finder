@@ -40,8 +40,8 @@ final class RenderTest extends WP_UnitTestCase {
 
 		$html = $this->render_block();
 
-		$this->assertStringContainsString( 'Big Tent', $html );
-		$this->assertStringNotContainsString( 'Small Tent', $html );
+		$this->assertStringContainsString( 'Big Tent', $this->results_markup( $html ) );
+		$this->assertStringNotContainsString( 'Small Tent', $this->results_markup( $html ) );
 	}
 
 	public function test_no_get_params_falls_back_to_the_default_unfiltered_view(): void {
@@ -110,6 +110,50 @@ final class RenderTest extends WP_UnitTestCase {
 		$this->render_block();
 
 		$this->assertSame( 0, EventCounter::get_counts( 'tents' )['zero_match'] );
+	}
+
+	public function test_two_block_instances_on_one_page_do_not_leak_each_others_products(): void {
+		// Two tents (index 0 and 1) so the second instance's state, being a
+		// shorter list (one backpack), can't accidentally overwrite cleanly —
+		// this is what actually exposes wp_interactivity_state()'s
+		// array_replace_recursive merge behavior: a shorter list overlaid on
+		// a longer one replaces index 0 but leaves index 1's product
+		// (Small Tent) sitting in the merged state under the wrong category.
+		$this->create_tent( 'Big Tent', 6 );
+		$this->create_tent( 'Small Tent', 2 );
+
+		$backpacks_category_id = wp_insert_term( 'Backpacks', 'product_cat' )['term_id'];
+		$backpack              = new WC_Product_Simple();
+		$backpack->set_name( 'Trail Pack' );
+		$backpack->set_status( 'publish' );
+		$backpack->set_category_ids( array( $backpacks_category_id ) );
+		$backpack->save();
+
+		// Rendering the tents instance first is what seeds the shared
+		// namespace state that the backpacks instance's render can then
+		// collide with.
+		$this->render_block();
+		$backpacks_html = $this->render_block( array( 'productCategory' => 'backpacks' ) );
+
+		$this->assertStringContainsString( 'Trail Pack', $backpacks_html );
+		$this->assertStringNotContainsString( 'Big Tent', $backpacks_html );
+		$this->assertStringNotContainsString( 'Small Tent', $backpacks_html );
+	}
+
+	/**
+	 * The visible, server-rendered results list only — excludes the root
+	 * element's data-wp-context attribute, which (by design, since the
+	 * multi-instance fix) carries every candidate product in the category
+	 * so the client can recompute results locally as answers change, not
+	 * just whichever ones currently pass the hard filters. Asserting
+	 * absence against the whole $html would find a filtered-out product's
+	 * name sitting harmlessly in that JSON, even though it's correctly
+	 * missing from the actual rendered results.
+	 */
+	private function results_markup( string $html ): string {
+		$start = strpos( $html, '<ul class="product-finder__results">' );
+		$end   = strpos( $html, '</ul>', $start );
+		return substr( $html, $start, $end - $start );
 	}
 
 	private function render_block( array $attrs = array() ): string {
