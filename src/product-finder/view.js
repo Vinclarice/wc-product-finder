@@ -12,6 +12,7 @@
 
 import { store, getContext } from '@wordpress/interactivity';
 import { match } from './matchEngine';
+import { buildRules } from './rules';
 
 const { state } = store( 'product-finder', {
 	state: {
@@ -34,37 +35,11 @@ const { state } = store( 'product-finder', {
 	actions: {
 		setAnswer( event ) {
 			const { questionKey } = getContext();
-			state.answers[ questionKey ] = event.target.value;
+			const value =
+				event.target.type === 'checkbox'
+					? event.target.checked
+					: event.target.value;
+			state.answers[ questionKey ] = value;
 		},
 	},
 } );
-
-function buildRules( questions, answers ) {
-	return questions
-		.filter( ( question ) => isAnswered( answers[ question.key ] ) )
-		.map( ( question ) => buildRule( question, answers[ question.key ] ) );
-}
-
-function isAnswered( value ) {
-	return value !== undefined && value !== null && value !== '';
-}
-
-function buildRule( question, answerValue ) {
-	const rule = {
-		attribute: question.attribute,
-		type: question.ruleType,
-		comparator: question.comparator,
-		value: castAnswer( answerValue, question.comparator ),
-	};
-	if ( question.ruleType === 'soft' ) {
-		rule.weight = question.weight;
-	}
-	return rule;
-}
-
-function castAnswer( value, comparator ) {
-	if ( comparator === 'gte' || comparator === 'lte' ) {
-		return Number( value );
-	}
-	return String( value ).toLowerCase();
-}

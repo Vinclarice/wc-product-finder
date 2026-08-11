@@ -11,8 +11,7 @@
  * PRODUCT-FINDER-PROPOSAL.md). Initial state is seeded once here with every
  * candidate product in the category so the client has what it needs.
  *
- * Only the "capacity" question is wired up so far — the rest are added the
- * same way once this pattern is proven (§10 build order step 6).
+ * All five starter-template questions are wired up (§10 build order step 6).
  *
  * The following variables are exposed to the file:
  *     $attributes (array): The block attributes.
@@ -65,17 +64,26 @@ wp_interactivity_state(
 <div <?php echo get_block_wrapper_attributes(); ?> data-wp-interactive="product-finder">
 	<div class="product-finder__questions">
 		<?php foreach ( $questions as $question ) : ?>
+			<?php $question_context = wp_json_encode( array( 'questionKey' => $question['key'] ) ); ?>
 			<label class="product-finder__question">
 				<?php echo esc_html( $question['label'] ); ?>
-				<select
-					data-wp-context='<?php echo esc_attr( wp_json_encode( array( 'questionKey' => $question['key'] ) ) ); ?>'
-					data-wp-on--change="actions.setAnswer"
-				>
-					<option value=""><?php esc_html_e( 'Any', 'product-finder' ); ?></option>
-					<?php foreach ( $question['input']['options'] as $option ) : ?>
-						<option value="<?php echo esc_attr( $option ); ?>"><?php echo esc_html( $option ); ?></option>
-					<?php endforeach; ?>
-				</select>
+				<?php if ( 'toggle' === $question['input']['type'] ) : ?>
+					<input
+						type="checkbox"
+						data-wp-context='<?php echo esc_attr( $question_context ); ?>'
+						data-wp-on--change="actions.setAnswer"
+					/>
+				<?php else : ?>
+					<select
+						data-wp-context='<?php echo esc_attr( $question_context ); ?>'
+						data-wp-on--change="actions.setAnswer"
+					>
+						<option value=""><?php esc_html_e( 'Any', 'product-finder' ); ?></option>
+						<?php foreach ( $question['input']['options'] as $option ) : ?>
+							<option value="<?php echo esc_attr( $option['value'] ); ?>"><?php echo esc_html( $option['label'] ); ?></option>
+						<?php endforeach; ?>
+					</select>
+				<?php endif; ?>
 			</label>
 		<?php endforeach; ?>
 	</div>

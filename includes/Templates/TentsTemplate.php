@@ -35,11 +35,17 @@ final class TentsTemplate {
 	}
 
 	/**
-	 * The starter template's questions (§4 "Product experience" of
-	 * PRODUCT-FINDER-PROPOSAL.md). Only "capacity" is wired up client-side so
-	 * far (build order step 6) — the remaining four (use type, season,
-	 * budget, packed weight) are added the same way once that pattern proves
-	 * out, per the plan.
+	 * The starter template's questions (§4 "Product experience" and the §5d
+	 * example table of PRODUCT-FINDER-PROPOSAL.md). All five are wired up
+	 * client-side (build order step 6), added one at a time following the
+	 * pattern "capacity" proved out first.
+	 *
+	 * Hard/soft and comparator per question match §5d's example table
+	 * directly: capacity and price are "Required" (hard); use type and
+	 * season are "Prefer"/"Strongly prefer" (soft); packed weight is the
+	 * one §5d itself left ambiguous ("Filter or strongly prefer") — modeled
+	 * here as a toggle that adds a soft preference at a fixed threshold
+	 * when switched on, rather than taking a raw answer value.
 	 */
 	public static function questions(): array {
 		return array(
@@ -51,7 +57,68 @@ final class TentsTemplate {
 				'comparator' => 'gte',
 				'input'      => array(
 					'type'    => 'select',
-					'options' => array( 1, 2, 3, 4, 5, 6 ),
+					'options' => self::scalar_options( array( 1, 2, 3, 4, 5, 6 ) ),
+				),
+			),
+			array(
+				'key'        => 'use_type',
+				'label'      => __( 'Car camping, hiking, or backpacking?', 'product-finder' ),
+				'attribute'  => 'use_type',
+				'ruleType'   => 'soft',
+				'comparator' => 'equals',
+				'weight'     => 3,
+				'input'      => array(
+					'type'    => 'select',
+					'options' => self::scalar_options( array( 'Backpacking', 'Car Camping', 'Both' ) ),
+				),
+			),
+			array(
+				'key'        => 'season_rating',
+				'label'      => __( 'Three-season or winter use?', 'product-finder' ),
+				'attribute'  => 'season_rating',
+				'ruleType'   => 'soft',
+				'comparator' => 'equals',
+				'weight'     => 2,
+				'input'      => array(
+					'type'    => 'select',
+					'options' => array(
+						array(
+							'value' => 2,
+							'label' => __( '2-season', 'product-finder' ),
+						),
+						array(
+							'value' => 3,
+							'label' => __( '3-season', 'product-finder' ),
+						),
+						array(
+							'value' => 4,
+							'label' => __( 'Winter (4-season)', 'product-finder' ),
+						),
+					),
+				),
+			),
+			array(
+				'key'        => 'price',
+				'label'      => __( "What's your budget?", 'product-finder' ),
+				'attribute'  => 'price',
+				'ruleType'   => 'hard',
+				'comparator' => 'lte',
+				'input'      => array(
+					'type'    => 'select',
+					'options' => self::scalar_options( array( 200, 300, 400, 500, 600 ) ),
+				),
+			),
+			array(
+				'key'        => 'packed_weight',
+				'label'      => __( 'Is packed weight important?', 'product-finder' ),
+				'attribute'  => 'packed_weight',
+				'ruleType'   => 'soft',
+				'comparator' => 'lte',
+				'weight'     => 2,
+				'input'      => array(
+					'type'  => 'toggle',
+					// The fixed threshold used when the toggle is on (§5d's "under 5 lb").
+					'value' => 5,
 				),
 			),
 		);
@@ -59,10 +126,24 @@ final class TentsTemplate {
 
 	/**
 	 * Order in which hard filters are relaxed when nothing matches (§5d) —
-	 * currently only one hard-filter question exists, so this is trivial;
-	 * it grows alongside questions().
+	 * price before capacity, matching the proposal's own "relax budget
+	 * before relaxing capacity" example.
 	 */
 	public static function relaxation_order(): array {
-		return array( 'capacity' );
+		return array( 'price', 'capacity' );
+	}
+
+	/**
+	 * @param array<int, int|string> $values
+	 * @return array<int, array{value: int|string, label: string}>
+	 */
+	private static function scalar_options( array $values ): array {
+		return array_map(
+			static fn( $value ) => array(
+				'value' => $value,
+				'label' => (string) $value,
+			),
+			$values
+		);
 	}
 }
