@@ -43,6 +43,14 @@ Both run as part of the normal `npm run test:php` / `npm run test:js`. Adding a 
 
 No dependency-analysis tool (e.g. Deptrac) yet — there's exactly one boundary to check today, and a plain test needs nothing new installed. If more layers/boundaries show up later (see "revisit" above), that's the point to reconsider.
 
+## Property-based testing
+
+The core's example-based tests (`*Test.php`, `*.test.js`) pin specific worked cases. Alongside them, `*PropertyTest.php` / `*.property.test.js` check invariants that must hold for *any* input — `MatchEngine`/`matchEngine.js` never exceed the requested limit and never relax a hard filter unless nothing satisfies the full set, `RuleBuilder`/`rules.js` never fabricate a rule for an unknown attribute, `QuestionSetResolver` never lets relaxation order disagree with display order (the exact bug class it exists to prevent). Every property is checkable by a rule simpler than the algorithm under test — none of them re-derive the implementation as its own oracle, which would just make the test a second copy of any bug in it.
+
+PHP uses `eris`, pinned to the 0.14.x line rather than the current 1.x — 1.x needs PHPUnit 10's attribute-based hooks, which this project's PHPUnit ^9.6 silently never calls. 0.14.x's older docblock-style hooks work correctly under 9.6. JS uses `fast-check` against the existing Jest setup, no compatibility issues there.
+
+One concrete caution if you add a new PHP property: keep generated arrays/vectors small (3 elements was fine, 6 was not, in local testing). Eris's shrinker does a cartesian product across every tuple/vector element when minimizing a failing case, so a wide generator can exhaust memory on a genuine failure instead of reporting one — confirmed by deliberately breaking `MatchEngine` and watching a 6-product generator OOM at 512MB where a 3-product one shrunk cleanly to a minimal counterexample in under a second.
+
 ## How this maps to the testing tiers (§9 of the proposal doc)
 
 - **Core** → plain PHPUnit (`tests/php/`) and Jest (`src/product-finder/*.test.js`), no WordPress bootstrap. Fast, and where TDD is practiced strictly.
