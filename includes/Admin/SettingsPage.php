@@ -7,6 +7,7 @@ namespace ProductFinder\Admin;
 use ProductFinder\Attributes\AttributeCompleteness;
 use ProductFinder\Attributes\AttributeDiscovery;
 use ProductFinder\Finder\ConfigRepository;
+use ProductFinder\Finder\EventCounter;
 use ProductFinder\Templates\TentsTemplate;
 
 /**
@@ -115,6 +116,7 @@ final class SettingsPage {
 
 		$current_map  = ConfigRepository::get_attribute_map( $selected_category );
 		$template_map = TentsTemplate::attribute_map();
+		$usage_counts = $selected_category ? EventCounter::get_counts( $selected_category ) : array();
 
 		require __DIR__ . '/settings-page.php';
 	}

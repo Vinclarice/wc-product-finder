@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ProductFinder\Tests\Integration\Block;
 
+use ProductFinder\Finder\EventCounter;
 use ProductFinder\Tests\Integration\Support\WooCommerceProductFactory;
 use WC_Product_Simple;
 use WP_UnitTestCase;
@@ -64,6 +65,36 @@ final class RenderTest extends WP_UnitTestCase {
 			'/<option\s+value="4"\s+selected=[\'"]selected[\'"]/',
 			$html
 		);
+	}
+
+	public function test_every_render_counts_as_a_view(): void {
+		$this->create_tent( 'Big Tent', 6 );
+
+		$this->render_block();
+		$this->render_block();
+
+		$this->assertSame( 2, EventCounter::get_counts( 'tents' )['view'] );
+	}
+
+	public function test_a_render_with_no_matching_products_counts_as_a_zero_match(): void {
+		// No tents created at all: fallback relaxation (relaxation_order
+		// covers both capacity and price) always finds *something* once every
+		// hard filter is relaxed — the only genuine zero-match is an empty
+		// category, nothing left to relax into.
+
+		$this->render_block();
+
+		$counts = EventCounter::get_counts( 'tents' );
+		$this->assertSame( 1, $counts['view'] );
+		$this->assertSame( 1, $counts['zero_match'] );
+	}
+
+	public function test_a_render_with_matching_products_does_not_count_as_a_zero_match(): void {
+		$this->create_tent( 'Big Tent', 6 );
+
+		$this->render_block();
+
+		$this->assertSame( 0, EventCounter::get_counts( 'tents' )['zero_match'] );
 	}
 
 	private function render_block(): string {

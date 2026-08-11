@@ -4,11 +4,17 @@
  * PRODUCT-FINDER-PROPOSAL.md: "a small number of critical-path scenarios...
  * rather than trying to unit-test markup").
  *
- * Covers exactly the two scenarios the proposal calls out:
+ * Covers exactly the scenarios the proposal calls out:
  *   1. answer questions -> see filtered results update, entirely client-side
  *      (no full page navigation - the Interactivity API updates local state,
  *      see src/product-finder/view.js)
  *   2. the zero-match fallback triggers and explains itself
+ *   3. add to cart - relies entirely on WooCommerce's own wc-add-to-cart.js
+ *      (enqueued site-wide whenever "AJAX add to cart" is enabled, which it
+ *      is by default), bound via event delegation so it needs no glue code
+ *      from this plugin even though results are re-rendered dynamically -
+ *      see includes/Query/ProductArrayAdapter's addToCartUrl field and
+ *      render.php's .ajax_add_to_cart markup.
  *
  * Fixture data this suite depends on:
  *   - The "Find Your Tent" page (post ID 34, slug /find-your-tent/), seeded
@@ -38,8 +44,12 @@ const EMPTY_CATEGORY_PAGE = '/e2e-empty-category/';
 const CAPACITY_LABEL = 'How many people will sleep in it?';
 const PRICE_LABEL = "What's your budget?";
 
+// Excludes the Add to cart link added alongside each result — without this,
+// the selector matches both anchors per result item.
 const resultNames = ( page ) =>
-	page.locator( '.product-finder__result a' ).allTextContents();
+	page
+		.locator( '.product-finder__result a:not(.add_to_cart_button)' )
+		.allTextContents();
 
 test.describe( 'Product Finder - critical path', () => {
 	test( 'answering a hard-filter question updates results in place, without a full page reload', async ( {
@@ -110,5 +120,39 @@ test.describe( 'Product Finder - critical path', () => {
 		await expect( page.locator( '.product-finder__result' ) ).toHaveCount(
 			0
 		);
+	} );
+
+	test( 'clicking Add to cart on a result actually adds it to the WooCommerce cart', async ( {
+		page,
+	} ) => {
+		await page.goto( FINDER_PAGE );
+
+		const firstResult = page.locator( '.product-finder__result' ).first();
+		const productName = await firstResult
+			.locator( 'a' )
+			.first()
+			.textContent();
+		const addToCartButton = firstResult.getByRole( 'link', {
+			name: 'Add to cart',
+		} );
+
+		// wc-add-to-cart.js adds the "added" class to the button only inside
+		// its AJAX success callback (confirmed by reading add-to-cart.js
+		// directly) - a real, WooCommerce-verified signal of a completed
+		// server round trip, not just an optimistic local UI toggle.
+		await addToCartButton.click();
+		await expect( addToCartButton ).toHaveClass( /added/, {
+			timeout: 20_000,
+		} );
+
+		// Cross-check against the cart's actual contents via WooCommerce's own
+		// exposed cart_url, rather than guessing a page slug/id.
+		const cartUrl = await page.evaluate(
+			() => window.wc_add_to_cart_params?.cart_url
+		);
+		expect( cartUrl ).toBeTruthy();
+
+		await page.goto( cartUrl );
+		await expect( page.getByText( productName.trim() ) ).toBeVisible();
 	} );
 } );

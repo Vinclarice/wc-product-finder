@@ -2,7 +2,7 @@
 /**
  * Template partial for SettingsPage::render(). Expects (from the calling
  * scope): $categories, $selected_category, $discovered, $completeness,
- * $current_map, $template_map.
+ * $current_map, $template_map, $usage_counts.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -28,6 +28,30 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</select>
 		<noscript><?php submit_button( __( 'Choose category', 'product-finder' ), '', '', false ); ?></noscript>
 	</form>
+
+	<?php if ( $selected_category ) : ?>
+		<h2><?php esc_html_e( 'Usage', 'product-finder' ); ?></h2>
+		<p>
+			<?php
+			$views           = $usage_counts['view'] ?? 0;
+			$zero_matches    = $usage_counts['zero_match'] ?? 0;
+			$zero_match_rate = $views > 0 ? round( ( $zero_matches / $views ) * 100 ) : 0;
+			printf(
+				/* translators: 1: view count phrase (e.g. "1 view" or "5 views"), 2: zero-match count, 3: zero-match percentage */
+				esc_html__( '%1$s, %2$d with no matching products (%3$d%%). Basic local counts only — see the plan for what a future hosted tier could add.', 'product-finder' ),
+				esc_html(
+					sprintf(
+						/* translators: %d: number of views */
+						_n( '%d view', '%d views', (int) $views, 'product-finder' ),
+						(int) $views
+					)
+				),
+				(int) $zero_matches,
+				(int) $zero_match_rate
+			);
+			?>
+		</p>
+	<?php endif; ?>
 
 	<?php if ( empty( $discovered ) ) : ?>
 		<p><?php esc_html_e( 'No products with attributes were found in this category yet.', 'product-finder' ); ?></p>

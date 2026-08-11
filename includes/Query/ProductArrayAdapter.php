@@ -24,13 +24,14 @@ final class ProductArrayAdapter {
 	 */
 	public static function to_array( WC_Product $product, array $attribute_map ): array {
 		$result = array(
-			'id'         => $product->get_id(),
-			'name'       => $product->get_name(),
-			'permalink'  => $product->get_permalink(),
-			'price'      => (float) $product->get_price(),
+			'id'           => $product->get_id(),
+			'name'         => $product->get_name(),
+			'permalink'    => $product->get_permalink(),
+			'addToCartUrl' => $product->add_to_cart_url(),
+			'price'        => (float) $product->get_price(),
 			// Plain text, not wc_price()'s HTML — this gets embedded as JSON state
 			// and rendered via a text-only directive on the client.
-			'priceLabel' => wp_strip_all_tags( wc_price( $product->get_price() ) ),
+			'priceLabel'   => wp_strip_all_tags( wc_price( $product->get_price() ) ),
 		);
 
 		foreach ( $attribute_map as $finder_attribute => $config ) {

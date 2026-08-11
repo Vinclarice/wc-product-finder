@@ -27,6 +27,7 @@
  */
 
 use ProductFinder\Engine\MatchEngine;
+use ProductFinder\Finder\EventCounter;
 use ProductFinder\Finder\FinderService;
 use ProductFinder\Finder\RuleBuilder;
 use ProductFinder\Templates\TentsTemplate;
@@ -55,6 +56,13 @@ if ( class_exists( 'WooCommerce' ) ) {
 	$candidates = FinderService::get_candidates( $product_category );
 	$rules      = RuleBuilder::build( $questions, $answers );
 	$result     = MatchEngine::match( $candidates, $rules, $match_options );
+
+	// Basic local aggregate counts (build order step 9 / §8 MVP scope) —
+	// server-side only, see EventCounter's docblock for why.
+	EventCounter::increment( $product_category, 'view' );
+	if ( empty( $result['products'] ) ) {
+		EventCounter::increment( $product_category, 'zero_match' );
+	}
 } else {
 	$questions  = array();
 	$candidates = array();
@@ -155,6 +163,15 @@ wp_interactivity_state(
 				<li class="product-finder__result">
 					<a data-wp-bind--href="context.result.product.permalink" data-wp-text="context.result.product.name"></a>
 					<span class="product-finder__price" data-wp-text="context.result.product.priceLabel"></span>
+					<a
+						class="button add_to_cart_button ajax_add_to_cart"
+						data-wp-bind--href="context.result.product.addToCartUrl"
+						data-wp-bind--data-product_id="context.result.product.id"
+						data-quantity="1"
+						rel="nofollow"
+					>
+						<?php esc_html_e( 'Add to cart', 'product-finder' ); ?>
+					</a>
 				</li>
 			</template>
 		</ul>

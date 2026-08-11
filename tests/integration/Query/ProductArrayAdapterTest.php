@@ -40,6 +40,7 @@ final class ProductArrayAdapterTest extends WP_UnitTestCase {
 		$this->assertSame( $id, $result['id'] );
 		$this->assertSame( 'Test Tent', $result['name'] );
 		$this->assertSame( $product->get_permalink(), $result['permalink'] );
+		$this->assertSame( $product->add_to_cart_url(), $result['addToCartUrl'] );
 		$this->assertSame( 249.0, $result['price'] );
 		$this->assertIsString( $result['priceLabel'] );
 		$this->assertStringContainsString( '249.00', $result['priceLabel'] );
