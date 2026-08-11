@@ -167,5 +167,23 @@
 			],
 			"relaxedAttributes": []
 		}
+	},
+	{
+		"name": "relaxationOrder listing an attribute with no active rule is not reported as relaxed",
+		"products": [
+			{ "id": 1, "capacity": 2 }
+		],
+		"rules": [
+			{ "attribute": "capacity", "type": "hard", "comparator": "gte", "value": 4 }
+		],
+		"options": {
+			"relaxationOrder": ["price", "capacity"]
+		},
+		"expected": {
+			"products": [
+				{ "product": { "id": 1, "capacity": 2 }, "score": 0 }
+			],
+			"relaxedAttributes": ["capacity"]
+		}
 	}
 ]

@@ -19,6 +19,11 @@ namespace ProductFinder\Finder;
  *
  * One wp_options row keyed by category, same pattern as ConfigRepository.
  * No PII, no per-shopper data — just two integers per category.
+ *
+ * Accepted limitation: increment() is an unlocked get_option -> mutate ->
+ * update_option, so concurrent requests could race and lose an increment.
+ * Acceptable for "basic aggregate" counts at this traffic scale — not worth
+ * atomic-counter infrastructure for approximate stats.
  */
 final class EventCounter {
 

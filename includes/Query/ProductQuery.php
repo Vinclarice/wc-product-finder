@@ -9,7 +9,7 @@ final class ProductQuery {
 	/**
 	 * @return \WC_Product[]
 	 */
-	public static function for_category( string $category_slug, int $limit = 3 ): array {
+	public static function for_category( string $category_slug, int $limit ): array {
 		return wc_get_products(
 			array(
 				'category' => array( $category_slug ),

@@ -10,6 +10,14 @@ namespace ProductFinder\Finder;
  * (§5b) has its own mapping. One wp_options row for the whole plugin rather
  * than a custom post type or term meta — this is small, plugin-owned
  * settings data, not content.
+ *
+ * Accepted limitation: save_attribute_map() is an unlocked get_option ->
+ * mutate -> update_option, the same race shape as EventCounter::increment().
+ * Two concurrent saves (two browser tabs, rapid saves across categories)
+ * built from stale snapshots could lose one save's changes. Lower stakes
+ * than EventCounter since this is an authenticated manage_woocommerce admin
+ * action, not anonymous shopper traffic — not worth locking for now, but a
+ * real gap if this screen ever sees frequent concurrent editors.
  */
 final class ConfigRepository {
 

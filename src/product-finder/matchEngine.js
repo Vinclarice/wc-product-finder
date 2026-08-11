@@ -51,8 +51,12 @@ function survivorsWithRelaxation( products, hardRules, relaxationOrder ) {
 			break;
 		}
 
+		const hadActiveRule = activeRules.some( ( rule ) => rule.attribute === attribute );
+
 		activeRules = activeRules.filter( ( rule ) => rule.attribute !== attribute );
-		relaxed.push( attribute );
+		if ( hadActiveRule ) {
+			relaxed.push( attribute );
+		}
 
 		survivors = products.filter( ( product ) => satisfiesAll( product, activeRules ) );
 	}

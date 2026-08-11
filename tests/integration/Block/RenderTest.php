@@ -67,6 +67,21 @@ final class RenderTest extends WP_UnitTestCase {
 		);
 	}
 
+	public function test_a_non_string_product_category_attribute_does_not_fatal(): void {
+		// A hand-edited block (raw markup in the Code Editor) could set
+		// productCategory to a non-string value. Verified this is already
+		// safe: WP_Block_Type::prepare_attributes_for_render() validates
+		// every attribute against block.json's declared schema before
+		// render.php ever runs, and an invalid value gets unset and
+		// repopulated from the schema's "default" ("tents") — contingent on
+		// block.json declaring both "type": "string" and a "default", which
+		// it does. Kept as a regression guard for that property, not because
+		// render.php itself does anything defensive here.
+		$html = $this->render_block( array( 'productCategory' => array( 'not', 'a', 'string' ) ) );
+
+		$this->assertIsString( $html );
+	}
+
 	public function test_every_render_counts_as_a_view(): void {
 		$this->create_tent( 'Big Tent', 6 );
 
@@ -97,11 +112,11 @@ final class RenderTest extends WP_UnitTestCase {
 		$this->assertSame( 0, EventCounter::get_counts( 'tents' )['zero_match'] );
 	}
 
-	private function render_block(): string {
+	private function render_block( array $attrs = array() ): string {
 		return render_block(
 			array(
 				'blockName'    => 'product-finder/product-finder',
-				'attrs'        => array(),
+				'attrs'        => $attrs,
 				'innerBlocks'  => array(),
 				'innerHTML'    => '',
 				'innerContent' => array(),

@@ -85,10 +85,14 @@ final class MatchEngine {
 				break;
 			}
 
+			$had_active_rule = array_filter( $active_rules, static fn( $rule ) => $rule['attribute'] === $attribute );
+
 			$active_rules = array_values(
 				array_filter( $active_rules, static fn( $rule ) => $rule['attribute'] !== $attribute )
 			);
-			$relaxed[]    = $attribute;
+			if ( ! empty( $had_active_rule ) ) {
+				$relaxed[] = $attribute;
+			}
 
 			$survivors = array_values(
 				array_filter( $products, static fn( $product ) => self::satisfies_all( $product, $active_rules ) )
