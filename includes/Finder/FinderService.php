@@ -15,6 +15,9 @@ use ProductFinder\Templates\TentsTemplate;
  * array shape, and returns the match result. The attribute map used is the
  * starter template's defaults with any merchant-saved overrides merged in
  * (build order step 7 / §5c) — see AttributeMapResolver and ConfigRepository.
+ * Each candidate's "specs" list is likewise built from whichever question
+ * set is effective for the category — the starter template's, or a
+ * merchant's saved custom one (§13) — see QuestionSetResolver.
  */
 final class FinderService {
 
@@ -31,11 +34,15 @@ final class FinderService {
 			TentsTemplate::attribute_map(),
 			ConfigRepository::get_attribute_map( $category_slug )
 		);
+		$questions     = QuestionSetResolver::resolve(
+			TentsTemplate::questions(),
+			ConfigRepository::get_questions( $category_slug )
+		)['questions'];
 
 		return array_map(
-			static function ( $product ) use ( $attribute_map ) {
-				$adapted            = ProductArrayAdapter::to_array( $product, $attribute_map );
-				$adapted['specs']   = TentsTemplate::format_specs( $adapted );
+			static function ( $product ) use ( $attribute_map, $questions ) {
+				$adapted          = ProductArrayAdapter::to_array( $product, $attribute_map );
+				$adapted['specs'] = TentsTemplate::format_specs( $adapted, $questions );
 				return $adapted;
 			},
 			$products

@@ -31,11 +31,12 @@
  * submits this one. Accepted for now — affects only no-JS visitors on a
  * page with multiple finder instances, not the common case.
  *
- * $questions/TentsTemplate stay fixed regardless of which category is
- * selected — only $heading adapts to the real category name. Per-category
- * question wording is the deliberately-deferred customization work (§13);
- * see edit.js's editor-side notice and the admin mapping screen's own
- * disclaimer for the same "this is one fixed template" honesty.
+ * $questions is TentsTemplate's defaults unless the category has a saved
+ * custom question set (§13's per-category question editor, resolved by
+ * QuestionSetResolver) — no admin UI creates one yet, so in practice this
+ * is still always TentsTemplate's for now. edit.js's editor-side notice and
+ * the admin mapping screen's disclaimer are still accurate until that UI
+ * ships (see their own docblocks for the plan to make them conditional).
  *
  * The following variables are exposed to the file:
  *     $attributes (array): The block attributes.
@@ -50,8 +51,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use ProductFinder\Engine\MatchEngine;
+use ProductFinder\Finder\ConfigRepository;
 use ProductFinder\Finder\EventCounter;
 use ProductFinder\Finder\FinderService;
+use ProductFinder\Finder\QuestionSetResolver;
 use ProductFinder\Finder\RelaxationExplainer;
 use ProductFinder\Finder\RuleBuilder;
 use ProductFinder\Templates\TentsTemplate;
@@ -66,12 +69,11 @@ $heading           = $category_term
 	)
 	: __( 'Find your perfect match', 'product-finder' );
 $match_options     = array(
-	'tiebreaker'      => array(
+	'tiebreaker' => array(
 		'attribute' => 'price',
 		'direction' => 'asc',
 	),
-	'limit'           => 3,
-	'relaxationOrder' => TentsTemplate::relaxation_order(),
+	'limit'      => 3,
 );
 
 $raw_get_answers = $_GET['product_finder'][ $product_category ] ?? array(); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only filtering, not a state-changing action.
@@ -84,7 +86,13 @@ foreach ( $raw_get_answers as $key => $value ) {
 }
 
 if ( class_exists( 'WooCommerce' ) ) {
-	$questions  = TentsTemplate::questions();
+	$question_set = QuestionSetResolver::resolve(
+		TentsTemplate::questions(),
+		ConfigRepository::get_questions( $product_category )
+	);
+	$questions                        = $question_set['questions'];
+	$match_options['relaxationOrder'] = $question_set['relaxationOrder'];
+
 	$candidates = FinderService::get_candidates( $product_category );
 	$rules      = RuleBuilder::build( $questions, $answers );
 	$result     = MatchEngine::match( $candidates, $rules, $match_options );
@@ -96,8 +104,9 @@ if ( class_exists( 'WooCommerce' ) ) {
 		EventCounter::increment( $product_category, 'zero_match' );
 	}
 } else {
-	$questions  = array();
-	$candidates = array();
+	$questions                        = array();
+	$candidates                       = array();
+	$match_options['relaxationOrder'] = array();
 }
 
 // The client's `answers` shape differs slightly from $_GET's for toggles: a

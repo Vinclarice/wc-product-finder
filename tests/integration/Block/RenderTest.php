@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ProductFinder\Tests\Integration\Block;
 
+use ProductFinder\Finder\ConfigRepository;
 use ProductFinder\Finder\EventCounter;
 use ProductFinder\Tests\Integration\Support\WooCommerceProductFactory;
 use WC_Product_Simple;
@@ -132,6 +133,78 @@ final class RenderTest extends WP_UnitTestCase {
 		$html = $this->render_block( array( 'productCategory' => 'does-not-exist' ) );
 
 		$this->assertStringContainsString( 'Find your perfect match', $html );
+	}
+
+	public function test_a_saved_custom_question_set_replaces_the_templates_questions(): void {
+		// No admin UI creates one of these yet (§13's per-category question
+		// editor, Phase 1) — this proves QuestionSetResolver's wiring into
+		// render.php works ahead of that UI shipping.
+		ConfigRepository::save_questions(
+			'tents',
+			array(
+				array(
+					'key'        => 'season_rating',
+					'label'      => 'Custom season question?',
+					'shortLabel' => 'Season',
+					'attribute'  => 'season_rating',
+					'ruleType'   => 'soft',
+					'comparator' => 'equals',
+					'valueType'  => 'int',
+					'weight'     => 1,
+					'input'      => array(
+						'type'    => 'select',
+						'options' => array(
+							array(
+								'value' => 3,
+								'label' => '3-season',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$html = $this->render_block();
+
+		$this->assertStringContainsString( 'Custom season question?', $html );
+		$this->assertStringNotContainsString( 'How many people will sleep in it?', $html );
+	}
+
+	public function test_relaxation_order_is_derived_from_the_custom_question_sets_hard_questions(): void {
+		$this->create_tent( 'Only Tent', 4 );
+
+		ConfigRepository::save_questions(
+			'tents',
+			array(
+				array(
+					'key'        => 'capacity',
+					'label'      => 'Capacity?',
+					'shortLabel' => 'Capacity',
+					'attribute'  => 'capacity',
+					'ruleType'   => 'hard',
+					'comparator' => 'gte',
+					'valueType'  => 'int',
+					'input'      => array(
+						'type'    => 'select',
+						'options' => array(
+							array(
+								'value' => 99,
+								'label' => '99',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$_GET['product_finder'] = array( 'tents' => array( 'capacity' => '99' ) );
+
+		$html = $this->render_block();
+
+		// An impossible capacity (99) forces relaxation of the custom
+		// question set's own single hard filter — not TentsTemplate's
+		// [price, capacity], which this category no longer uses at all.
+		$this->assertStringContainsString( 'Only Tent', $this->results_markup( $html ) );
 	}
 
 	public function test_two_block_instances_on_one_page_do_not_leak_each_others_products(): void {

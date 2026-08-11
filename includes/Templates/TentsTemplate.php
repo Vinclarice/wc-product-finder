@@ -12,6 +12,13 @@ namespace ProductFinder\Templates;
  * the attribute-mapping admin screen, build order step 7) are merged on top
  * by ProductFinder\Finder\AttributeMapResolver, read from
  * ProductFinder\Finder\ConfigRepository — see ProductFinder\Finder\FinderService.
+ *
+ * questions() is the same kind of default: a merchant's saved custom
+ * question set (§13's per-category question editor) entirely replaces it
+ * per category, resolved by ProductFinder\Finder\QuestionSetResolver. The
+ * finder attribute set itself (capacity/packed_weight/season_rating/
+ * use_type/price) stays fixed either way — customization is about which of
+ * these are asked, how, and in what order, not inventing new attributes.
  */
 final class TentsTemplate {
 
@@ -48,9 +55,29 @@ final class TentsTemplate {
 	 * one §5d itself left ambiguous ("Filter or strongly prefer") — modeled
 	 * here as a toggle that adds a soft preference at a fixed threshold
 	 * when switched on, rather than taking a raw answer value.
+	 *
+	 * Declaration order matters beyond display: QuestionSetResolver derives
+	 * the hard-filter relaxation order from the hard questions' relative
+	 * order here, top to bottom. price is declared before capacity — not
+	 * the more conversational "how many people, then what's your budget"
+	 * ordering — specifically so it relaxes first, matching §5d's own
+	 * example ("relax budget before relaxing capacity").
 	 */
 	public static function questions(): array {
 		return array(
+			array(
+				'key'        => 'price',
+				'label'      => __( "What's your budget?", 'product-finder' ),
+				'shortLabel' => __( 'Budget', 'product-finder' ),
+				'attribute'  => 'price',
+				'ruleType'   => 'hard',
+				'comparator' => 'lte',
+				'valueType'  => 'float', // Matches ProductArrayAdapter's (float) cast of the product's native price.
+				'input'      => array(
+					'type'    => 'select',
+					'options' => self::scalar_options( array( 200, 300, 400, 500, 600 ) ),
+				),
+			),
 			array(
 				'key'        => 'capacity',
 				'label'      => __( 'How many people will sleep in it?', 'product-finder' ),
@@ -111,19 +138,6 @@ final class TentsTemplate {
 				),
 			),
 			array(
-				'key'        => 'price',
-				'label'      => __( "What's your budget?", 'product-finder' ),
-				'shortLabel' => __( 'Budget', 'product-finder' ),
-				'attribute'  => 'price',
-				'ruleType'   => 'hard',
-				'comparator' => 'lte',
-				'valueType'  => 'float', // Matches ProductArrayAdapter's (float) cast of the product's native price.
-				'input'      => array(
-					'type'    => 'select',
-					'options' => self::scalar_options( array( 200, 300, 400, 500, 600 ) ),
-				),
-			),
-			array(
 				'key'        => 'packed_weight',
 				'label'      => __( 'Is packed weight important?', 'product-finder' ),
 				'shortLabel' => __( 'Packed weight', 'product-finder' ),
@@ -144,27 +158,23 @@ final class TentsTemplate {
 	}
 
 	/**
-	 * Order in which hard filters are relaxed when nothing matches (§5d) —
-	 * price before capacity, matching the proposal's own "relax budget
-	 * before relaxing capacity" example.
-	 */
-	public static function relaxation_order(): array {
-		return array( 'price', 'capacity' );
-	}
-
-	/**
 	 * "Key specs" for a result card (§4 of PRODUCT-FINDER-PROPOSAL.md) — every
-	 * finder attribute except price, which the card already shows separately
-	 * as its own price/priceLabel. Skips attributes missing from the product
-	 * rather than showing an empty value.
+	 * question's attribute except price, which the card already shows
+	 * separately as its own price/priceLabel. Skips attributes missing from
+	 * the product rather than showing an empty value.
+	 *
+	 * Takes the question set as a parameter rather than calling questions()
+	 * internally so this works for a merchant's saved custom question set
+	 * too (see QuestionSetResolver), not just this template's own defaults.
 	 *
 	 * @param array<string, mixed> $product An adapted product array (see ProductArrayAdapter::to_array()).
+	 * @param array<int, array{attribute: string, shortLabel: string}> $questions
 	 * @return array<int, array{label: string, value: string}>
 	 */
-	public static function format_specs( array $product ): array {
+	public static function format_specs( array $product, array $questions ): array {
 		$specs = array();
 
-		foreach ( self::questions() as $question ) {
+		foreach ( $questions as $question ) {
 			if ( 'price' === $question['attribute'] ) {
 				continue;
 			}
