@@ -1,8 +1,8 @@
 <?php
 /**
  * Template partial for SettingsPage::render(). Expects (from the calling
- * scope): $categories, $selected_category, $discovered, $completeness,
- * $current_map, $template_map, $usage_counts.
+ * scope): $categories, $selected_category, $selected_category_name,
+ * $discovered, $completeness, $current_map, $template_map, $usage_counts.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -89,6 +89,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 		<h2><?php esc_html_e( 'Map attributes', 'product-finder' ); ?></h2>
 		<p><?php esc_html_e( 'Choose which of this category\'s WooCommerce attributes each finder attribute should read from. Leave a selection blank to use the starter template\'s default.', 'product-finder' ); ?></p>
+		<p class="description">
+			<?php
+			printf(
+				/* translators: %s: the selected WooCommerce product category's real name. */
+				esc_html__( 'These fields come from the Outdoor Gear Finder starter template and are the same for every category — they don\'t adapt to "%s" specifically. Map whichever of this category\'s attributes fit best, or leave a field unmapped to use the template default.', 'product-finder' ),
+				esc_html( $selected_category_name )
+			);
+			?>
+		</p>
 		<form method="post">
 			<?php wp_nonce_field( 'product_finder_save_mapping' ); ?>
 			<input type="hidden" name="product_finder_save_mapping" value="1" />

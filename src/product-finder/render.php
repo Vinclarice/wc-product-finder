@@ -31,6 +31,12 @@
  * submits this one. Accepted for now — affects only no-JS visitors on a
  * page with multiple finder instances, not the common case.
  *
+ * $questions/TentsTemplate stay fixed regardless of which category is
+ * selected — only $heading adapts to the real category name. Per-category
+ * question wording is the deliberately-deferred customization work (§13);
+ * see edit.js's editor-side notice and the admin mapping screen's own
+ * disclaimer for the same "this is one fixed template" honesty.
+ *
  * The following variables are exposed to the file:
  *     $attributes (array): The block attributes.
  *     $content (string): The block default content.
@@ -51,6 +57,14 @@ use ProductFinder\Finder\RuleBuilder;
 use ProductFinder\Templates\TentsTemplate;
 
 $product_category = $attributes['productCategory'] ?? 'tents';
+$category_term     = get_term_by( 'slug', $product_category, 'product_cat' );
+$heading           = $category_term
+	? sprintf(
+		/* translators: %s: the selected WooCommerce product category's real name. */
+		__( 'Find your %s match', 'product-finder' ),
+		$category_term->name
+	)
+	: __( 'Find your perfect match', 'product-finder' );
 $match_options     = array(
 	'tiebreaker'      => array(
 		'attribute' => 'price',
@@ -145,7 +159,7 @@ wp_interactivity_state(
 ?>
 <div <?php echo get_block_wrapper_attributes(); ?> data-wp-interactive="product-finder" data-wp-context='<?php echo esc_attr( $instance_context ); ?>'>
 	<h2 class="product-finder__heading">
-		<?php esc_html_e( 'Find your tent', 'product-finder' ); ?>
+		<?php echo esc_html( $heading ); ?>
 	</h2>
 
 	<form method="get" data-wp-on--submit="actions.preventFormSubmit">
@@ -200,7 +214,7 @@ wp_interactivity_state(
 			if ( ! function_exists( 'submit_button' ) ) {
 				require_once ABSPATH . 'wp-admin/includes/template.php';
 			}
-			submit_button( __( 'Find your tent', 'product-finder' ), 'primary', '', false );
+			submit_button( $heading, 'primary', '', false );
 			?>
 			<a class="button" href="<?php echo esc_url( remove_query_arg( 'product_finder' ) ); ?>">
 				<?php esc_html_e( 'Reset', 'product-finder' ); ?>

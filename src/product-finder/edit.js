@@ -12,13 +12,17 @@
  */
 import { __, sprintf } from '@wordpress/i18n';
 import { InspectorControls, useBlockProps } from '@wordpress/block-editor';
-import { PanelBody, SelectControl, Spinner } from '@wordpress/components';
+import { Notice, PanelBody, SelectControl, Spinner } from '@wordpress/components';
 import { useSelect } from '@wordpress/data';
 import { store as coreStore } from '@wordpress/core-data';
 
 import './editor.scss';
 
 const CATEGORY_QUERY = { per_page: -1 };
+
+// The only category this starter template's question wording ("How many
+// people will sleep in it?", etc.) actually matches — see TentsTemplate.
+const TEMPLATE_CATEGORY = 'tents';
 
 export default function Edit( { attributes, setAttributes } ) {
 	const { productCategory } = attributes;
@@ -66,6 +70,14 @@ export default function Edit( { attributes, setAttributes } ) {
 								'product-finder'
 							) }
 						/>
+					) }
+					{ productCategory && productCategory !== TEMPLATE_CATEGORY && (
+						<Notice status="warning" isDismissible={ false }>
+							{ __(
+								'This starter template\'s questions are written for tents (e.g. "How many people will sleep in it?"). Shoppers in this category will see the same tent-phrased questions until per-category question customization ships.',
+								'product-finder'
+							) }
+						</Notice>
 					) }
 				</PanelBody>
 			</InspectorControls>

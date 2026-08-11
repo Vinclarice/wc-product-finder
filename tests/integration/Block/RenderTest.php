@@ -112,6 +112,28 @@ final class RenderTest extends WP_UnitTestCase {
 		$this->assertSame( 0, EventCounter::get_counts( 'tents' )['zero_match'] );
 	}
 
+	public function test_heading_reflects_the_selected_categorys_real_name(): void {
+		// set_up() creates the 'tents' category with the display name "Tents".
+		$html = $this->render_block();
+
+		$this->assertStringContainsString( 'Find your Tents match', $html );
+		$this->assertStringNotContainsString( 'Find your tent<', $html );
+	}
+
+	public function test_heading_adapts_to_a_different_real_category(): void {
+		wp_insert_term( 'Backpacks', 'product_cat', array( 'slug' => 'backpacks' ) );
+
+		$html = $this->render_block( array( 'productCategory' => 'backpacks' ) );
+
+		$this->assertStringContainsString( 'Find your Backpacks match', $html );
+	}
+
+	public function test_heading_falls_back_to_a_generic_message_for_an_unknown_category(): void {
+		$html = $this->render_block( array( 'productCategory' => 'does-not-exist' ) );
+
+		$this->assertStringContainsString( 'Find your perfect match', $html );
+	}
+
 	public function test_two_block_instances_on_one_page_do_not_leak_each_others_products(): void {
 		// Two tents (index 0 and 1) so the second instance's state, being a
 		// shorter list (one backpack), can't accidentally overwrite cleanly —

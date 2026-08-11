@@ -107,6 +107,15 @@ final class SettingsPage {
 			? sanitize_title( wp_unslash( $_GET['category'] ) )
 			: ( $categories[0]->slug ?? '' );
 
+		$selected_category_term = null;
+		foreach ( $categories as $category ) {
+			if ( $category->slug === $selected_category ) {
+				$selected_category_term = $category;
+				break;
+			}
+		}
+		$selected_category_name = $selected_category_term ? $selected_category_term->name : $selected_category;
+
 		$discovered   = $selected_category ? AttributeDiscovery::for_category( $selected_category ) : array();
 		$completeness = array();
 		if ( ! empty( $discovered ) ) {

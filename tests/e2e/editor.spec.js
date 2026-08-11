@@ -43,6 +43,12 @@ test.describe( 'Product Finder - editor category control', () => {
 		await expect(
 			editor.canvas.getByText( 'Product Finder — showing products from', { exact: false } )
 		).toBeVisible();
+
+		// No mismatch warning for the one category this template's copy
+		// actually matches.
+		await expect(
+			page.getByText( 'written for tents', { exact: false } )
+		).toBeHidden();
 	} );
 
 	test( 'changing the category updates the attribute and the canvas preview', async ( {
@@ -64,5 +70,16 @@ test.describe( 'Product Finder - editor category control', () => {
 
 		const blocks = await editor.getBlocks();
 		expect( blocks[ 0 ].attributes.productCategory ).toBe( 'uncategorized' );
+
+		// Picking any category other than "tents" surfaces the mismatch
+		// warning — this template's questions are tent-phrased regardless.
+		// Scoped to the Notice itself, not a plain text search: Gutenberg's
+		// a11y-speak live region echoes the same text for screen readers,
+		// so an unscoped locator matches twice.
+		await expect(
+			page
+				.locator( '.components-notice' )
+				.getByText( 'written for tents', { exact: false } )
+		).toBeVisible();
 	} );
 } );
