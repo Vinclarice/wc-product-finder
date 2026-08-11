@@ -27,7 +27,9 @@
  *     zero-match test doesn't depend on constructing a relaxation-defeating
  *     combination from the tent data (relaxationOrder currently relaxes
  *     price then capacity, and always finds *something* once both are
- *     relaxed - see includes/Templates/TentsTemplate::relaxation_order()).
+ *     relaxed - see includes/Finder/QuestionSetResolver.php, which derives
+ *     relaxation order from the effective question set's hard-type
+ *     questions).
  *
  * Timing note: `expect(...).toHaveText(...)` etc. rely on Playwright's
  * built-in auto-waiting/retrying, not manual waits - the Interactivity API

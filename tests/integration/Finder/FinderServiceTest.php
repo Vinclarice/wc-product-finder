@@ -122,20 +122,24 @@ final class FinderServiceTest extends WP_UnitTestCase {
 		$this->assertSame(
 			array(
 				array(
-					'label' => 'Capacity',
-					'value' => '4 people',
+					'attribute' => 'capacity',
+					'label'     => 'Capacity',
+					'value'     => '4 people',
 				),
 				array(
-					'label' => 'Use type',
-					'value' => 'Backpacking',
+					'attribute' => 'use_type',
+					'label'     => 'Use type',
+					'value'     => 'Backpacking',
 				),
 				array(
-					'label' => 'Season rating',
-					'value' => '3',
+					'attribute' => 'season_rating',
+					'label'     => 'Season rating',
+					'value'     => '3',
 				),
 				array(
-					'label' => 'Packed weight',
-					'value' => '3.2 lb',
+					'attribute' => 'packed_weight',
+					'label'     => 'Packed weight',
+					'value'     => '3.2 lb',
 				),
 			),
 			$candidates[0]['specs']

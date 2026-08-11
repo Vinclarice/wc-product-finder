@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ProductFinder\Tests\Integration\Block;
 
+use ProductFinder\Admin\SettingsPage;
 use ProductFinder\Finder\ConfigRepository;
 use ProductFinder\Finder\EventCounter;
 use ProductFinder\Tests\Integration\Support\WooCommerceProductFactory;
@@ -136,9 +137,10 @@ final class RenderTest extends WP_UnitTestCase {
 	}
 
 	public function test_a_saved_custom_question_set_replaces_the_templates_questions(): void {
-		// No admin UI creates one of these yet (§13's per-category question
-		// editor, Phase 1) — this proves QuestionSetResolver's wiring into
-		// render.php works ahead of that UI shipping.
+		// Saved directly rather than via the admin screen (includes/Admin/
+		// SettingsPage.php) — this proves QuestionSetResolver's wiring into
+		// render.php works in isolation from that screen's own form
+		// handling, which has its own dedicated tests.
 		ConfigRepository::save_questions(
 			'tents',
 			array(
@@ -205,6 +207,81 @@ final class RenderTest extends WP_UnitTestCase {
 		// question set's own single hard filter — not TentsTemplate's
 		// [price, capacity], which this category no longer uses at all.
 		$this->assertStringContainsString( 'Only Tent', $this->results_markup( $html ) );
+	}
+
+	public function test_a_toggle_question_with_no_get_answer_is_not_treated_as_active_on_the_server(): void {
+		$this->create_tent( 'Big Tent', 6 );
+		$this->create_tent( 'Small Tent', 2 );
+
+		ConfigRepository::save_questions(
+			'tents',
+			array(
+				array(
+					'key'        => 'capacity',
+					'label'      => 'Capacity toggle?',
+					'shortLabel' => 'Capacity',
+					'attribute'  => 'capacity',
+					'ruleType'   => 'hard',
+					'comparator' => 'gte',
+					'valueType'  => 'int',
+					'input'      => array(
+						'type'  => 'toggle',
+						'value' => 4,
+					),
+				),
+			)
+		);
+
+		// No $_GET at all — the toggle was never checked. This exercises the
+		// server-side "state.results" derived-state closure (built from the
+		// data-wp-each--result="state.results.products" markup, via real
+		// directive processing), not the imperative $result used only for
+		// the EventCounter check — that's the code path RuleBuilder's own
+		// docblock says needs $_GET-shaped answers (toggle key absent when
+		// unanswered), which this test's fixture setup deliberately leaves
+		// untouched.
+		$html = $this->render_block();
+
+		// If the toggle were incorrectly treated as always-on, the
+		// capacity>=4 hard filter would exclude Small Tent.
+		$this->assertStringContainsString( 'Big Tent', $this->results_markup( $html ) );
+		$this->assertStringContainsString( 'Small Tent', $this->results_markup( $html ) );
+	}
+
+	public function test_an_equals_toggle_question_on_an_int_attribute_matches_the_checked_answer(): void {
+		$this->create_tent( 'Exact Match Tent', 4 );
+		$this->create_tent( 'Different Tent', 6 );
+
+		// Routed through the real admin-screen sanitizer, not a
+		// hand-constructed config — this is what actually catches a
+		// wrong-type cast in sanitize_submitted_questions() itself, not
+		// just what a test could construct around it.
+		$sanitized = SettingsPage::sanitize_submitted_questions(
+			array(
+				array(
+					'attribute'       => 'capacity',
+					'label'           => 'Exactly 4?',
+					'ruleType'        => 'hard',
+					'comparator'      => 'equals',
+					'inputType'       => 'toggle',
+					'toggleThreshold' => '4',
+				),
+			),
+			array( 'capacity' => 'int' )
+		);
+		ConfigRepository::save_questions( 'tents', $sanitized );
+
+		// A no-JS checkbox submission reports presence, not a boolean value.
+		$_GET['product_finder'] = array( 'tents' => array( 'capacity' => 'on' ) );
+
+		$html = $this->render_block();
+
+		// If the threshold were cast to (float) 4.0 instead of (int) 4 (as
+		// it was before this fix), this 'equals' hard filter could never
+		// strictly-match any product's int-cast capacity — 4 === 4.0 is
+		// false in PHP.
+		$this->assertStringContainsString( 'Exact Match Tent', $this->results_markup( $html ) );
+		$this->assertStringNotContainsString( 'Different Tent', $this->results_markup( $html ) );
 	}
 
 	public function test_two_block_instances_on_one_page_do_not_leak_each_others_products(): void {

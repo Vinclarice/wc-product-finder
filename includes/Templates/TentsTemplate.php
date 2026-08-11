@@ -167,9 +167,18 @@ final class TentsTemplate {
 	 * internally so this works for a merchant's saved custom question set
 	 * too (see QuestionSetResolver), not just this template's own defaults.
 	 *
+	 * Includes `attribute` (not just the merchant-editable `label`) because
+	 * render.php uses it — not `label` — as the specs list's
+	 * data-wp-each-key: a merchant could give two different question rows
+	 * the same short label via the admin question editor (§13, Phase 3),
+	 * and the Interactivity API's each-loop tracks items in a plain JS Map
+	 * keyed by that value, which silently drops one entry on a collision.
+	 * `attribute` is always unique per product (it's the finder-attribute
+	 * name, not merchant-authored text), so it can't collide.
+	 *
 	 * @param array<string, mixed> $product An adapted product array (see ProductArrayAdapter::to_array()).
 	 * @param array<int, array{attribute: string, shortLabel: string}> $questions
-	 * @return array<int, array{label: string, value: string}>
+	 * @return array<int, array{attribute: string, label: string, value: string}>
 	 */
 	public static function format_specs( array $product, array $questions ): array {
 		$specs = array();
@@ -185,8 +194,9 @@ final class TentsTemplate {
 			}
 
 			$specs[] = array(
-				'label' => $question['shortLabel'],
-				'value' => self::format_spec_value( $question['attribute'], $value ),
+				'attribute' => $question['attribute'],
+				'label'     => $question['shortLabel'],
+				'value'     => self::format_spec_value( $question['attribute'], $value ),
 			);
 		}
 

@@ -13,13 +13,16 @@ use ProductFinder\Finder\QuestionSetResolver;
 use ProductFinder\Templates\TentsTemplate;
 
 /**
- * The attribute-mapping admin screen (build order step 7 / §5c/§6). Classic
- * server-rendered PHP form — no build step, no REST endpoint — since the
- * actual UI (a category picker and a handful of dropdowns) doesn't need
- * live interactivity: completeness for every discoverable attribute is
- * computed up front on page load. Scoped to attribute mapping only; see
- * PRODUCT-FINDER-PROPOSAL.md §13 for what's deliberately deferred (question
- * customization, hard/soft editing).
+ * The attribute-mapping + question-editor admin screen (build order step 7
+ * / §5c/§6 for attribute mapping; §13's per-category question editor epic
+ * for the "Questions" section). Classic server-rendered PHP form — no build
+ * step, no REST endpoint — since the actual UI (a category picker and a
+ * handful of dropdowns/radios) doesn't need live interactivity:
+ * completeness for every discoverable attribute, and real discovered
+ * answer choices for select-type questions, are both computed up front on
+ * page load. The finder-attribute set itself (capacity/packed_weight/
+ * season_rating/use_type/price) stays fixed — this screen lets a merchant
+ * customize which of those are asked about and how, not invent new ones.
  */
 final class SettingsPage {
 
@@ -162,9 +165,15 @@ final class SettingsPage {
 			}
 
 			if ( 'toggle' === ( $row['inputType'] ?? '' ) ) {
+				$threshold = $row['toggleThreshold'] ?? 0;
+				// Cast by the attribute's own valueType, not always to
+				// float: MatchEngine's 'equals' comparator does a strict
+				// PHP === check, and 4 === 4.0 is false — an int-typed
+				// attribute's threshold has to actually be an int, the same
+				// `3 === 3.0` bug class already hit once with season_rating.
 				$question['input'] = array(
 					'type'  => 'toggle',
-					'value' => (float) ( $row['toggleThreshold'] ?? 0 ),
+					'value' => 'int' === $value_type ? (int) $threshold : (float) $threshold,
 				);
 			} else {
 				$question['input'] = array(
@@ -279,8 +288,19 @@ final class SettingsPage {
 		$saved_questions      = $selected_category ? ConfigRepository::get_questions( $selected_category ) : array();
 		$has_custom_questions = ! empty( $saved_questions );
 		$current_questions    = QuestionSetResolver::resolve( TentsTemplate::questions(), $saved_questions )['questions'];
-		$question_rows        = self::build_question_rows( $current_questions );
-		$attribute_labels     = self::attribute_labels();
+		// The preview shown on this screen (as opposed to what's actually
+		// saved/live on the front end) always reflects live discovered
+		// values, not whatever was frozen in at the last save — this is an
+		// authenticated, low-traffic admin page, so recomputing on every
+		// load is cheap, and it's what lets the screen's own copy ("Answer
+		// choices are the real values found on this category's products")
+		// actually be true before a merchant has saved anything yet.
+		if ( ! empty( $discovered ) ) {
+			$effective_map     = AttributeMapResolver::resolve( $template_map, $current_map );
+			$current_questions = self::questions_with_discovered_options( $selected_category, $effective_map, $current_questions );
+		}
+		$question_rows    = self::build_question_rows( $current_questions );
+		$attribute_labels = self::attribute_labels();
 
 		require __DIR__ . '/settings-page.php';
 	}

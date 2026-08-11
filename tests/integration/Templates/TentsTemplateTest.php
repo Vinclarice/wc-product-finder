@@ -34,20 +34,24 @@ final class TentsTemplateTest extends WP_UnitTestCase {
 		$this->assertSame(
 			array(
 				array(
-					'label' => 'Capacity',
-					'value' => '4 people',
+					'attribute' => 'capacity',
+					'label'     => 'Capacity',
+					'value'     => '4 people',
 				),
 				array(
-					'label' => 'Use type',
-					'value' => 'Backpacking',
+					'attribute' => 'use_type',
+					'label'     => 'Use type',
+					'value'     => 'Backpacking',
 				),
 				array(
-					'label' => 'Season rating',
-					'value' => '3',
+					'attribute' => 'season_rating',
+					'label'     => 'Season rating',
+					'value'     => '3',
 				),
 				array(
-					'label' => 'Packed weight',
-					'value' => '3.2 lb',
+					'attribute' => 'packed_weight',
+					'label'     => 'Packed weight',
+					'value'     => '3.2 lb',
 				),
 			),
 			$specs
@@ -60,8 +64,9 @@ final class TentsTemplateTest extends WP_UnitTestCase {
 		$this->assertSame(
 			array(
 				array(
-					'label' => 'Capacity',
-					'value' => '4 people',
+					'attribute' => 'capacity',
+					'label'     => 'Capacity',
+					'value'     => '4 people',
 				),
 			),
 			$specs
@@ -90,11 +95,41 @@ final class TentsTemplateTest extends WP_UnitTestCase {
 		$this->assertSame(
 			array(
 				array(
-					'label' => 'Season',
-					'value' => '3',
+					'attribute' => 'season_rating',
+					'label'     => 'Season',
+					'value'     => '3',
 				),
 			),
 			$specs
+		);
+	}
+
+	public function test_format_specs_gives_each_spec_a_stable_key_independent_of_merchant_editable_labels(): void {
+		// Regression test: render.php's specs each-loop uses `attribute`,
+		// not `label`, as its data-wp-each-key — two questions sharing the
+		// same merchant-typed short label must not collide.
+		$custom_questions = array(
+			array(
+				'attribute'  => 'capacity',
+				'shortLabel' => 'Info',
+			),
+			array(
+				'attribute'  => 'season_rating',
+				'shortLabel' => 'Info',
+			),
+		);
+
+		$specs = TentsTemplate::format_specs(
+			array(
+				'capacity'      => 4,
+				'season_rating' => 3,
+			),
+			$custom_questions
+		);
+
+		$this->assertSame(
+			array( 'capacity', 'season_rating' ),
+			array_column( $specs, 'attribute' )
 		);
 	}
 }

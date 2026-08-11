@@ -32,11 +32,12 @@
  * page with multiple finder instances, not the common case.
  *
  * $questions is TentsTemplate's defaults unless the category has a saved
- * custom question set (§13's per-category question editor, resolved by
- * QuestionSetResolver) — no admin UI creates one yet, so in practice this
- * is still always TentsTemplate's for now. edit.js's editor-side notice and
- * the admin mapping screen's disclaimer are still accurate until that UI
- * ships (see their own docblocks for the plan to make them conditional).
+ * custom question set (§13's per-category question editor) — resolved by
+ * QuestionSetResolver, which a merchant creates via the admin "Questions"
+ * screen (includes/Admin/SettingsPage.php). edit.js's editor-side notice
+ * and the admin mapping screen's disclaimer are both worded to be accurate
+ * either way, since neither has a way to know at a glance whether a given
+ * category actually has a saved custom set.
  *
  * The following variables are exposed to the file:
  *     $attributes (array): The block attributes.
@@ -112,11 +113,28 @@ if ( class_exists( 'WooCommerce' ) ) {
 // The client's `answers` shape differs slightly from $_GET's for toggles: a
 // JS checkbox reports a boolean, where a submitted form only reports
 // presence — translate here so the client picks up cleanly from the URL.
+//
+// An unanswered toggle's key is omitted entirely, not set to null: this
+// same $initial_js_answers array is what state.results' derived-state
+// closure (below) reads back via wp_interactivity_get_context() and passes
+// straight to RuleBuilder::build() for server-side rendering — and
+// RuleBuilder's own docblock is explicit that it needs $_GET-shaped
+// answers, where a toggle's "on" state is signaled by key presence, not a
+// boolean value. Setting the key to null here (instead of omitting it)
+// previously made every toggle question look "answered" on every server
+// render regardless of shopper input — confirmed via
+// RenderTest::test_a_toggle_question_with_no_get_answer_is_not_treated_as_active_on_the_server.
+// Omitting the key is also what the client needs: rules.js's
+// shouldIncludeRule() checks `answerValue === true`, which is equally
+// false for `undefined` (key absent) as for `null` (key present), so this
+// doesn't change client-side behavior at all.
 $initial_js_answers = array();
 foreach ( $questions as $question ) {
 	$key = $question['key'];
 	if ( 'toggle' === $question['input']['type'] ) {
-		$initial_js_answers[ $key ] = array_key_exists( $key, $answers ) ? true : null;
+		if ( array_key_exists( $key, $answers ) ) {
+			$initial_js_answers[ $key ] = true;
+		}
 	} else {
 		$initial_js_answers[ $key ] = $answers[ $key ] ?? null;
 	}
@@ -255,7 +273,7 @@ wp_interactivity_state(
 						<?php esc_html_e( 'Out of stock', 'product-finder' ); ?>
 					</span>
 					<ul class="product-finder__specs">
-						<template data-wp-each--spec="context.result.product.specs" data-wp-each-key="context.spec.label">
+						<template data-wp-each--spec="context.result.product.specs" data-wp-each-key="context.spec.attribute">
 							<li>
 								<span data-wp-text="context.spec.label"></span>:
 								<span data-wp-text="context.spec.value"></span>

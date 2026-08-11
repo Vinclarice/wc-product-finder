@@ -89,7 +89,7 @@ Front-end, stateful block: answers update local state; recommendations, count, e
 
 - Free WordPress.org plugin, WooCommerce required.
 - Product Finder block, supporting multiple instances (one per category, §5b).
-- Up to six questions per finder, each declared as hard filter or soft preference.
+- Up to one question per finder attribute (five today — see §13), each declared as hard filter or soft preference.
 - Attribute mapping with completeness visibility at setup (§5c).
 - Rule-based matching per the spec in §5d, including fallback/relaxation logic.
 - Immediate on-page results, "why this fits" text.

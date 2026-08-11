@@ -13,7 +13,14 @@ namespace ProductFinder\Finder;
  * bigger change deferred for now.
  *
  * Mirrored by relaxationExplainer.js, verified against the same fixture —
- * see RelaxationExplainerFixtureParityTest.
+ * see RelaxationExplainerFixtureParityTest. That mirror is deliberately
+ * NOT translatable, unlike this class: @wordpress/i18n can't currently be
+ * imported into a WordPress script module (view.js's format), so the JS
+ * side's output is fixed English regardless of site locale — see
+ * relaxationExplainer.js's own docblock for the confirmed platform
+ * limitation behind that. This class's __()/_n() calls only affect the
+ * server-rendered/no-JS output; the client-recomputed text after JS
+ * hydration takes over does not go through them.
  */
 final class RelaxationExplainer {
 

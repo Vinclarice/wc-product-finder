@@ -33,5 +33,15 @@
 			{ "attribute": "price", "shortLabel": "Budget" }
 		],
 		"expected": null
+	},
+	{
+		"name": "three or more relaxed attributes are comma-joined with 'and' before the last one",
+		"relaxedAttributes": ["price", "capacity", "season_rating"],
+		"questions": [
+			{ "attribute": "price", "shortLabel": "Budget" },
+			{ "attribute": "capacity", "shortLabel": "Capacity" },
+			{ "attribute": "season_rating", "shortLabel": "Season rating" }
+		],
+		"expected": "We relaxed your Budget, Capacity and Season rating preferences to show you more options."
 	}
 ]

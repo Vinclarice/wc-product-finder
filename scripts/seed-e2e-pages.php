@@ -68,7 +68,9 @@ function product_finder_seed_e2e_page( string $slug, string $title, array $block
 // Points the Product Finder block at a category slug with zero products, so
 // the zero-match fallback ("No products found for this category yet.") has
 // a deterministic page to render on, independent of the tent seed data or
-// any relaxation logic (see includes/Templates/TentsTemplate::relaxation_order()).
+// any relaxation logic (see includes/Finder/QuestionSetResolver.php, which
+// derives relaxation order from the effective question set's hard-type
+// questions).
 product_finder_seed_e2e_page(
 	'e2e-empty-category',
 	'E2E Empty Category',

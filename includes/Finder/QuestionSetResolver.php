@@ -6,9 +6,8 @@ namespace ProductFinder\Finder;
 
 /**
  * Resolves the effective question set for a category (the per-category
- * question editor epic — see PRODUCT-FINDER-PROPOSAL.md §13, "question
- * customization is narrower than §6 describes") and derives the hard-filter
- * relaxation order from it.
+ * question editor epic — see PRODUCT-FINDER-PROPOSAL.md §13) and derives
+ * the hard-filter relaxation order from it.
  *
  * Relaxation order is no longer a separately-declared value (contrast
  * TentsTemplate's now-removed relaxation_order()): it's the hard-type
