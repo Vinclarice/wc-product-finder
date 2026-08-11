@@ -41,4 +41,20 @@ final class EventCounterTest extends WP_UnitTestCase {
 		$this->assertSame( 1, EventCounter::get_counts( 'tents' )['view'] );
 		$this->assertSame( 2, EventCounter::get_counts( 'backpacks' )['view'] );
 	}
+
+	public function test_uninstall_removes_counts_for_every_category(): void {
+		EventCounter::increment( 'tents', 'view' );
+		EventCounter::increment( 'backpacks', 'zero_match' );
+
+		EventCounter::uninstall();
+
+		$this->assertSame(
+			array(
+				'view'       => 0,
+				'zero_match' => 0,
+			),
+			EventCounter::get_counts( 'tents' )
+		);
+		$this->assertFalse( get_option( 'product_finder_event_counts' ) );
+	}
 }

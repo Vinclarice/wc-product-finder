@@ -79,4 +79,15 @@ final class ConfigRepositoryTest extends WP_UnitTestCase {
 		$this->assertSame( array( array( 'key' => 'tents-question' ) ), ConfigRepository::get_questions( 'tents' ) );
 		$this->assertSame( array( array( 'key' => 'backpacks-question' ) ), ConfigRepository::get_questions( 'backpacks' ) );
 	}
+
+	public function test_uninstall_removes_saved_config_for_every_category(): void {
+		ConfigRepository::save_attribute_map( 'tents', array( 'capacity' => 'tent-capacity' ) );
+		ConfigRepository::save_questions( 'backpacks', array( array( 'key' => 'backpacks-question' ) ) );
+
+		ConfigRepository::uninstall();
+
+		$this->assertSame( array(), ConfigRepository::get_attribute_map( 'tents' ) );
+		$this->assertSame( array(), ConfigRepository::get_questions( 'backpacks' ) );
+		$this->assertFalse( get_option( 'product_finder_configs' ) );
+	}
 }

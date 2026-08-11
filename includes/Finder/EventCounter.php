@@ -53,4 +53,13 @@ final class EventCounter {
 		}
 		return $result;
 	}
+
+	/**
+	 * Called from the plugin root's uninstall.php when a merchant deletes
+	 * the plugin — removes the aggregate view/zero_match counts for every
+	 * category, since they all live in this one option.
+	 */
+	public static function uninstall(): void {
+		delete_option( self::OPTION_NAME );
+	}
 }

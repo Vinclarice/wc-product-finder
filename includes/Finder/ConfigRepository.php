@@ -52,4 +52,13 @@ final class ConfigRepository {
 
 		update_option( self::OPTION_NAME, $configs );
 	}
+
+	/**
+	 * Called from the plugin root's uninstall.php when a merchant deletes
+	 * the plugin — removes every category's saved attribute map and
+	 * question set in one call, since they all live in this one option.
+	 */
+	public static function uninstall(): void {
+		delete_option( self::OPTION_NAME );
+	}
 }
