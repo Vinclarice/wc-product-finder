@@ -4,7 +4,7 @@ Tags:               woocommerce, product finder, gutenberg, block, quiz
 Requires at least:  6.8
 Tested up to:      6.8
 Requires PHP:      7.4
-Stable tag:        0.1.0
+Stable tag:        1.0.0
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -67,7 +67,7 @@ Yes. Each Finder block instance is independent, even multiple instances for diff
 
 == Changelog ==
 
-= 0.1.0 =
+= 1.0.0 =
 * Initial release: Gutenberg block with instant, no-reload result matching via the Interactivity API.
 * Hard-filter and weighted soft-preference questions, with automatic fallback relaxation and an explanation of what was relaxed.
 * Result cards with image, price, stock status, key specs, and add-to-cart.

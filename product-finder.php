@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Product Finder
  * Description:       A Gutenberg-native product finder for WooCommerce block-theme stores.
- * Version:           0.1.0
+ * Version:           1.0.0
  * Requires at least: 6.8
  * Requires PHP:      7.4
  * Author:            The WordPress Contributors
