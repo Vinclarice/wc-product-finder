@@ -33,7 +33,11 @@ final class FinderService {
 		);
 
 		return array_map(
-			static fn( $product ) => ProductArrayAdapter::to_array( $product, $attribute_map ),
+			static function ( $product ) use ( $attribute_map ) {
+				$adapted            = ProductArrayAdapter::to_array( $product, $attribute_map );
+				$adapted['specs']   = TentsTemplate::format_specs( $adapted );
+				return $adapted;
+			},
 			$products
 		);
 	}

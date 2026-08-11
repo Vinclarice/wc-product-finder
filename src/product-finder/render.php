@@ -46,6 +46,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 use ProductFinder\Engine\MatchEngine;
 use ProductFinder\Finder\EventCounter;
 use ProductFinder\Finder\FinderService;
+use ProductFinder\Finder\RelaxationExplainer;
 use ProductFinder\Finder\RuleBuilder;
 use ProductFinder\Templates\TentsTemplate;
 
@@ -111,7 +112,7 @@ $compute_results = static function () use ( $match_options ) {
 	$instance = wp_interactivity_get_context();
 	$rules    = RuleBuilder::build( $instance['questions'] ?? array(), $instance['answers'] ?? array() );
 
-	return MatchEngine::match(
+	$result = MatchEngine::match(
 		$instance['products'] ?? array(),
 		$rules,
 		array(
@@ -120,6 +121,16 @@ $compute_results = static function () use ( $match_options ) {
 			'relaxationOrder' => $instance['relaxationOrder'] ?? array(),
 		)
 	);
+
+	// §5d of PRODUCT-FINDER-PROPOSAL.md: when a hard filter had to be
+	// relaxed to find anything, say so. Deliberately scoped to only the
+	// relaxation case — see RelaxationExplainer's docblock.
+	$result['relaxationMessage'] = RelaxationExplainer::explain(
+		$result['relaxedAttributes'],
+		$instance['questions'] ?? array()
+	);
+
+	return $result;
 };
 
 wp_interactivity_state(
@@ -153,12 +164,14 @@ wp_interactivity_state(
 							<?php checked( array_key_exists( $question['key'], $answers ) ); ?>
 							data-wp-context='<?php echo esc_attr( $question_context ); ?>'
 							data-wp-on--change="actions.setAnswer"
+							data-wp-watch="callbacks.syncCurrentAnswerToControl"
 						/>
 					<?php else : ?>
 						<select
 							name="<?php echo esc_attr( $field_name ); ?>"
 							data-wp-context='<?php echo esc_attr( $question_context ); ?>'
 							data-wp-on--change="actions.setAnswer"
+							data-wp-watch="callbacks.syncCurrentAnswerToControl"
 						>
 							<option value=""><?php esc_html_e( 'Any', 'product-finder' ); ?></option>
 							<?php foreach ( $question['input']['options'] as $option ) : ?>
@@ -173,8 +186,11 @@ wp_interactivity_state(
 					<?php endif; ?>
 				</label>
 			<?php endforeach; ?>
-		</div>
-		<noscript>
+			</div>
+			<button type="button" class="button" data-wp-on--click="actions.reset">
+				<?php esc_html_e( 'Reset', 'product-finder' ); ?>
+			</button>
+			<noscript>
 			<?php
 			// submit_button() lives in wp-admin/includes/template.php, which
 			// WordPress only autoloads for wp-admin requests — not here, on a
@@ -186,6 +202,9 @@ wp_interactivity_state(
 			}
 			submit_button( __( 'Find your tent', 'product-finder' ), 'primary', '', false );
 			?>
+			<a class="button" href="<?php echo esc_url( remove_query_arg( 'product_finder' ) ); ?>">
+				<?php esc_html_e( 'Reset', 'product-finder' ); ?>
+			</a>
 		</noscript>
 	</form>
 
@@ -194,11 +213,32 @@ wp_interactivity_state(
 			<?php esc_html_e( 'No products found for this category yet.', 'product-finder' ); ?>
 		</p>
 
+		<p
+			class="product-finder__relaxation-message"
+			data-wp-bind--hidden="!state.results.relaxationMessage"
+			data-wp-text="state.results.relaxationMessage"
+		></p>
+
 		<ul class="product-finder__results">
 			<template data-wp-each--result="state.results.products" data-wp-each-key="context.result.product.id">
 				<li class="product-finder__result">
+					<img data-wp-bind--src="context.result.product.image" data-wp-bind--alt="context.result.product.name" />
 					<a data-wp-bind--href="context.result.product.permalink" data-wp-text="context.result.product.name"></a>
 					<span class="product-finder__price" data-wp-text="context.result.product.priceLabel"></span>
+					<span class="product-finder__stock" data-wp-bind--hidden="!context.result.product.inStock">
+						<?php esc_html_e( 'In stock', 'product-finder' ); ?>
+					</span>
+					<span class="product-finder__stock" data-wp-bind--hidden="context.result.product.inStock">
+						<?php esc_html_e( 'Out of stock', 'product-finder' ); ?>
+					</span>
+					<ul class="product-finder__specs">
+						<template data-wp-each--spec="context.result.product.specs" data-wp-each-key="context.spec.label">
+							<li>
+								<span data-wp-text="context.spec.label"></span>:
+								<span data-wp-text="context.spec.value"></span>
+							</li>
+						</template>
+					</ul>
 					<a
 						class="button add_to_cart_button ajax_add_to_cart"
 						data-wp-bind--href="context.result.product.addToCartUrl"

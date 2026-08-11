@@ -155,4 +155,83 @@ test.describe( 'Product Finder - critical path', () => {
 		await page.goto( cartUrl );
 		await expect( page.getByText( productName.trim() ) ).toBeVisible();
 	} );
+
+	test( 'each result shows an image, stock status, and key specs', async ( {
+		page,
+	} ) => {
+		await page.goto( FINDER_PAGE );
+
+		// Default first result — 'Solo Skyline 1P Value' from
+		// scripts/seed-tents.php: capacity 1, packed_weight 2.9,
+		// season_rating 2, use_type 'Backpacking'.
+		const firstResult = page.locator( '.product-finder__result' ).first();
+
+		await expect( firstResult.locator( 'img' ) ).toHaveAttribute(
+			'src',
+			/.+/
+		);
+		await expect( firstResult.getByText( 'In stock' ) ).toBeVisible();
+
+		const specTexts = await firstResult
+			.locator( '.product-finder__specs li' )
+			.allTextContents();
+		expect(
+			specTexts.map( ( t ) => t.replace( /\s+/g, ' ' ).trim() )
+		).toEqual( [
+			'Capacity: 1 people',
+			'Use type: Backpacking',
+			'Season rating: 2',
+			'Packed weight: 2.9 lb',
+		] );
+	} );
+
+	test( 'shows why results were relaxed when a hard filter had to be dropped to find anything', async ( {
+		page,
+	} ) => {
+		await page.goto( FINDER_PAGE );
+
+		const relaxationMessage = page.locator(
+			'.product-finder__relaxation-message'
+		);
+		await expect( relaxationMessage ).toBeHidden();
+
+		// capacity >= 6 AND price <= 200: the cheapest 6-person tent
+		// (Homestead 6P Weekender, $259) is still over budget, so price
+		// has to relax before anything can survive.
+		await page.getByLabel( CAPACITY_LABEL ).selectOption( '6' );
+		await page.getByLabel( PRICE_LABEL ).selectOption( '200' );
+
+		await expect( relaxationMessage ).toBeVisible();
+		await expect( relaxationMessage ).toHaveText(
+			'We relaxed your Budget preference to show you more options.'
+		);
+		await expect( resultNames( page ) ).resolves.not.toHaveLength( 0 );
+	} );
+
+	test( 'the reset button clears every answer and restores the default results, including the controls themselves', async ( {
+		page,
+	} ) => {
+		await page.goto( FINDER_PAGE );
+
+		const capacitySelect = page.getByLabel( CAPACITY_LABEL );
+		await capacitySelect.selectOption( '6' );
+
+		await expect( resultNames( page ) ).resolves.toEqual( [
+			'Homestead 6P Weekender',
+			'Basecamp 6P Family',
+			'Expedition 6P Pro',
+		] );
+
+		await page.getByRole( 'button', { name: 'Reset' } ).click();
+
+		// The control itself visually resets — not just the results — proving
+		// context.answers was cleared programmatically rather than via the
+		// user picking "Any" themselves.
+		await expect( capacitySelect ).toHaveValue( '' );
+		await expect( resultNames( page ) ).resolves.toEqual( [
+			'Solo Skyline 1P Value',
+			'TrailLite 2P Value',
+			'Solo Skyline 1P',
+		] );
+	} );
 } );

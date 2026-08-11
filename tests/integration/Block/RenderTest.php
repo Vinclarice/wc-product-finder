@@ -149,10 +149,15 @@ final class RenderTest extends WP_UnitTestCase {
 	 * absence against the whole $html would find a filtered-out product's
 	 * name sitting harmlessly in that JSON, even though it's correctly
 	 * missing from the actual rendered results.
+	 *
+	 * Uses the *last* </ul> in the document, not the first: each result now
+	 * nests its own <ul class="product-finder__specs">, so the first </ul>
+	 * after the opening tag would close that inner list instead of the
+	 * outer results one.
 	 */
 	private function results_markup( string $html ): string {
 		$start = strpos( $html, '<ul class="product-finder__results">' );
-		$end   = strpos( $html, '</ul>', $start );
+		$end   = strrpos( $html, '</ul>' );
 		return substr( $html, $start, $end - $start );
 	}
 

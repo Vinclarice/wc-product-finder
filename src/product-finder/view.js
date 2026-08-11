@@ -26,20 +26,28 @@
  * No request back to the server happens per answer (§7 of the proposal).
  */
 
-import { store, getContext } from '@wordpress/interactivity';
+import { store, getContext, getElement } from '@wordpress/interactivity';
 import { match } from './matchEngine';
 import { buildRules } from './rules';
+import { explainRelaxation } from './relaxationExplainer';
 
 const { state } = store( 'product-finder', {
 	state: {
 		get results() {
 			const { products, questions, answers, relaxationOrder } = getContext();
 			const rules = buildRules( questions, answers );
-			return match( products, rules, {
+			const result = match( products, rules, {
 				tiebreaker: { attribute: 'price', direction: 'asc' },
 				limit: 3,
 				relaxationOrder,
 			} );
+			return {
+				...result,
+				relaxationMessage: explainRelaxation(
+					result.relaxedAttributes,
+					questions
+				),
+			};
 		},
 		// Directive expressions only support plain property paths, not inline
 		// operators — so "is there anything to show" has to be its own getter
@@ -47,6 +55,17 @@ const { state } = store( 'product-finder', {
 		// in the markup.
 		get hasResults() {
 			return state.results.products.length > 0;
+		},
+		// The value of whichever question control is currently evaluating
+		// this — needs to be derived rather than read directly off the
+		// answer object in the markup, since directive expressions don't
+		// support dynamic property lookups like
+		// `context.answers[context.questionKey]`. Consumed by
+		// callbacks.syncCurrentAnswerToControl, not directly by a
+		// data-wp-bind directive — see that callback for why.
+		get currentAnswer() {
+			const { answers, questionKey } = getContext();
+			return answers[ questionKey ];
 		},
 	},
 	actions: {
@@ -65,6 +84,36 @@ const { state } = store( 'product-finder', {
 		// swallowed rather than navigating away.
 		preventFormSubmit( event ) {
 			event.preventDefault();
+		},
+		// Clears every answer back to "unanswered" so the default,
+		// unfiltered view returns. Mutating context.answers directly (rather
+		// than one key at a time via setAnswer) is what makes
+		// callbacks.syncCurrentAnswerToControl necessary — without it, the
+		// controls themselves wouldn't visually reset even though the
+		// results correctly do.
+		reset() {
+			const context = getContext();
+			Object.keys( context.answers ).forEach( ( key ) => {
+				context.answers[ key ] = null;
+			} );
+		},
+	},
+	callbacks: {
+		// data-wp-bind--value/--checked only reliably applies on a control's
+		// first hydration (confirmed empirically: after that, changing
+		// context.answers via reset() updates state.currentAnswer and the
+		// results correctly, but a native <select>/<input type="checkbox">'s
+		// own DOM value/checked property doesn't follow along). A
+		// data-wp-watch effect that imperatively sets the DOM property
+		// itself is the reliable alternative.
+		syncCurrentAnswerToControl() {
+			const { ref } = getElement();
+			const value = state.currentAnswer;
+			if ( 'checkbox' === ref.type ) {
+				ref.checked = Boolean( value );
+			} else {
+				ref.value = value ?? '';
+			}
 		},
 	},
 } );

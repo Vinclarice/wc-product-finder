@@ -50,6 +50,45 @@ final class ProductArrayAdapterTest extends WP_UnitTestCase {
 		// Categorical string values are lowercased so rule values ('backpacking')
 		// don't have to fragilely match WooCommerce's stored display casing.
 		$this->assertSame( 'backpacking', $result['use_type'] );
+		$this->assertTrue( $result['inStock'] );
+	}
+
+	public function test_a_product_with_no_featured_image_gets_woocommerces_placeholder_image(): void {
+		$product = new WC_Product_Simple();
+		$product->set_name( 'Imageless Tent' );
+		$id      = $product->save();
+		$product = wc_get_product( $id );
+
+		$result = ProductArrayAdapter::to_array( $product, self::ATTRIBUTE_MAP );
+
+		$this->assertSame( wc_placeholder_img_src(), $result['image'] );
+	}
+
+	public function test_a_product_with_a_featured_image_uses_its_real_url(): void {
+		$product        = new WC_Product_Simple();
+		$product->set_name( 'Photographed Tent' );
+		$id             = $product->save();
+		$attachment_id  = self::factory()->attachment->create();
+		$product        = wc_get_product( $id );
+		$product->set_image_id( $attachment_id );
+		$product->save();
+		$product = wc_get_product( $id );
+
+		$result = ProductArrayAdapter::to_array( $product, self::ATTRIBUTE_MAP );
+
+		$this->assertSame( wp_get_attachment_image_url( $attachment_id, 'woocommerce_thumbnail' ), $result['image'] );
+	}
+
+	public function test_an_out_of_stock_product_reports_false(): void {
+		$product = new WC_Product_Simple();
+		$product->set_name( 'Sold Out Tent' );
+		$product->set_stock_status( 'outofstock' );
+		$id      = $product->save();
+		$product = wc_get_product( $id );
+
+		$result = ProductArrayAdapter::to_array( $product, self::ATTRIBUTE_MAP );
+
+		$this->assertFalse( $result['inStock'] );
 	}
 
 	public function test_result_is_json_safe_for_embedding_as_interactivity_api_state(): void {

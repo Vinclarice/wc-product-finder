@@ -26,6 +26,8 @@ final class ProductArrayAdapter {
 	 * @param array<string, array{slug: string, type: string}> $attribute_map Finder attribute name => WC attribute slug + value type.
 	 */
 	public static function to_array( WC_Product $product, array $attribute_map ): array {
+		$image_id = $product->get_image_id();
+
 		$result = array(
 			'id'           => $product->get_id(),
 			'name'         => $product->get_name(),
@@ -35,6 +37,10 @@ final class ProductArrayAdapter {
 			// Plain text, not wc_price()'s HTML — this gets embedded as JSON state
 			// and rendered via a text-only directive on the client.
 			'priceLabel'   => wp_strip_all_tags( wc_price( $product->get_price() ) ),
+			'image'        => $image_id
+				? wp_get_attachment_image_url( $image_id, 'woocommerce_thumbnail' )
+				: wc_placeholder_img_src(),
+			'inStock'      => $product->is_in_stock(),
 		);
 
 		foreach ( $attribute_map as $finder_attribute => $config ) {

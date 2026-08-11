@@ -54,6 +54,7 @@ final class TentsTemplate {
 			array(
 				'key'        => 'capacity',
 				'label'      => __( 'How many people will sleep in it?', 'product-finder' ),
+				'shortLabel' => __( 'Capacity', 'product-finder' ),
 				'attribute'  => 'capacity',
 				'ruleType'   => 'hard',
 				'comparator' => 'gte',
@@ -66,6 +67,7 @@ final class TentsTemplate {
 			array(
 				'key'        => 'use_type',
 				'label'      => __( 'Car camping, hiking, or backpacking?', 'product-finder' ),
+				'shortLabel' => __( 'Use type', 'product-finder' ),
 				'attribute'  => 'use_type',
 				'ruleType'   => 'soft',
 				'comparator' => 'equals',
@@ -79,6 +81,7 @@ final class TentsTemplate {
 			array(
 				'key'        => 'season_rating',
 				'label'      => __( 'Three-season or winter use?', 'product-finder' ),
+				'shortLabel' => __( 'Season rating', 'product-finder' ),
 				'attribute'  => 'season_rating',
 				'ruleType'   => 'soft',
 				'comparator' => 'equals',
@@ -110,6 +113,7 @@ final class TentsTemplate {
 			array(
 				'key'        => 'price',
 				'label'      => __( "What's your budget?", 'product-finder' ),
+				'shortLabel' => __( 'Budget', 'product-finder' ),
 				'attribute'  => 'price',
 				'ruleType'   => 'hard',
 				'comparator' => 'lte',
@@ -122,6 +126,7 @@ final class TentsTemplate {
 			array(
 				'key'        => 'packed_weight',
 				'label'      => __( 'Is packed weight important?', 'product-finder' ),
+				'shortLabel' => __( 'Packed weight', 'product-finder' ),
 				'attribute'  => 'packed_weight',
 				'ruleType'   => 'soft',
 				'comparator' => 'lte',
@@ -145,6 +150,53 @@ final class TentsTemplate {
 	 */
 	public static function relaxation_order(): array {
 		return array( 'price', 'capacity' );
+	}
+
+	/**
+	 * "Key specs" for a result card (§4 of PRODUCT-FINDER-PROPOSAL.md) — every
+	 * finder attribute except price, which the card already shows separately
+	 * as its own price/priceLabel. Skips attributes missing from the product
+	 * rather than showing an empty value.
+	 *
+	 * @param array<string, mixed> $product An adapted product array (see ProductArrayAdapter::to_array()).
+	 * @return array<int, array{label: string, value: string}>
+	 */
+	public static function format_specs( array $product ): array {
+		$specs = array();
+
+		foreach ( self::questions() as $question ) {
+			if ( 'price' === $question['attribute'] ) {
+				continue;
+			}
+
+			$value = $product[ $question['attribute'] ] ?? null;
+			if ( null === $value ) {
+				continue;
+			}
+
+			$specs[] = array(
+				'label' => $question['shortLabel'],
+				'value' => self::format_spec_value( $question['attribute'], $value ),
+			);
+		}
+
+		return $specs;
+	}
+
+	/**
+	 * @param mixed $value
+	 */
+	private static function format_spec_value( string $attribute, $value ): string {
+		switch ( $attribute ) {
+			case 'capacity':
+				return $value . ' ' . __( 'people', 'product-finder' );
+			case 'packed_weight':
+				return $value . ' ' . __( 'lb', 'product-finder' );
+			case 'use_type':
+				return ucfirst( (string) $value );
+			default:
+				return (string) $value;
+		}
 	}
 
 	/**

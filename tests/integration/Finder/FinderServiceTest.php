@@ -114,6 +114,34 @@ final class FinderServiceTest extends WP_UnitTestCase {
 		$this->assertSame( 'Custom Slug Tent', $result['products'][0]['product']['name'] );
 	}
 
+	public function test_candidates_carry_a_pre_formatted_specs_list(): void {
+		$this->create_tent( 'Specced Tent', 4, 3.2, 3, 'Backpacking', 249 );
+
+		$candidates = FinderService::get_candidates( 'tents' );
+
+		$this->assertSame(
+			array(
+				array(
+					'label' => 'Capacity',
+					'value' => '4 people',
+				),
+				array(
+					'label' => 'Use type',
+					'value' => 'Backpacking',
+				),
+				array(
+					'label' => 'Season rating',
+					'value' => '3',
+				),
+				array(
+					'label' => 'Packed weight',
+					'value' => '3.2 lb',
+				),
+			),
+			$candidates[0]['specs']
+		);
+	}
+
 	private function create_tent( string $name, int $capacity, float $packed_weight, int $season_rating, string $use_type, float $price ): void {
 		$product = new WC_Product_Simple();
 		$product->set_name( $name );

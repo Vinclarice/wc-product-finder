@@ -1,0 +1,37 @@
+[
+	{
+		"name": "no relaxed attributes returns null",
+		"relaxedAttributes": [],
+		"questions": [
+			{ "attribute": "price", "shortLabel": "Budget" },
+			{ "attribute": "capacity", "shortLabel": "Capacity" }
+		],
+		"expected": null
+	},
+	{
+		"name": "one relaxed attribute produces a singular sentence",
+		"relaxedAttributes": ["price"],
+		"questions": [
+			{ "attribute": "price", "shortLabel": "Budget" },
+			{ "attribute": "capacity", "shortLabel": "Capacity" }
+		],
+		"expected": "We relaxed your Budget preference to show you more options."
+	},
+	{
+		"name": "two relaxed attributes are joined with 'and' in a plural sentence",
+		"relaxedAttributes": ["price", "capacity"],
+		"questions": [
+			{ "attribute": "price", "shortLabel": "Budget" },
+			{ "attribute": "capacity", "shortLabel": "Capacity" }
+		],
+		"expected": "We relaxed your Budget and Capacity preferences to show you more options."
+	},
+	{
+		"name": "a relaxed attribute with no matching question is skipped rather than shown blank",
+		"relaxedAttributes": ["unknown_attribute"],
+		"questions": [
+			{ "attribute": "price", "shortLabel": "Budget" }
+		],
+		"expected": null
+	}
+]
