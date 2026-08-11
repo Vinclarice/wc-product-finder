@@ -18,14 +18,23 @@ use ProductFinder\Templates\TentsTemplate;
  */
 final class FinderService {
 
-	public static function get_results( string $category_slug, array $rules, array $options = array() ): array {
+	/**
+	 * Every published product in the category, adapted to the engine's plain
+	 * array shape but not yet run through MatchEngine. This is what gets
+	 * embedded as Interactivity API state (build order step 6) so the client
+	 * can recompute results locally as the shopper answers questions, without
+	 * a request back to the server per answer.
+	 */
+	public static function get_candidates( string $category_slug ): array {
 		$products = ProductQuery::for_category( $category_slug, -1 );
 
-		$product_arrays = array_map(
+		return array_map(
 			static fn( $product ) => ProductArrayAdapter::to_array( $product, TentsTemplate::attribute_map() ),
 			$products
 		);
+	}
 
-		return MatchEngine::match( $product_arrays, $rules, $options );
+	public static function get_results( string $category_slug, array $rules, array $options = array() ): array {
+		return MatchEngine::match( self::get_candidates( $category_slug ), $rules, $options );
 	}
 }

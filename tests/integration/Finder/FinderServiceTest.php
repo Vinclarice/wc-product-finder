@@ -43,7 +43,7 @@ final class FinderServiceTest extends WP_UnitTestCase {
 		$result = FinderService::get_results( 'tents', $rules );
 
 		$this->assertCount( 1, $result['products'] );
-		$this->assertSame( 'Right Tent', $result['products'][0]['product']['_product']->get_name() );
+		$this->assertSame( 'Right Tent', $result['products'][0]['product']['name'] );
 	}
 
 	public function test_zero_match_relaxes_per_options_and_reports_which_attribute(): void {

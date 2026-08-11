@@ -33,4 +33,36 @@ final class TentsTemplate {
 			),
 		);
 	}
+
+	/**
+	 * The starter template's questions (§4 "Product experience" of
+	 * PRODUCT-FINDER-PROPOSAL.md). Only "capacity" is wired up client-side so
+	 * far (build order step 6) — the remaining four (use type, season,
+	 * budget, packed weight) are added the same way once that pattern proves
+	 * out, per the plan.
+	 */
+	public static function questions(): array {
+		return array(
+			array(
+				'key'        => 'capacity',
+				'label'      => __( 'How many people will sleep in it?', 'product-finder' ),
+				'attribute'  => 'capacity',
+				'ruleType'   => 'hard',
+				'comparator' => 'gte',
+				'input'      => array(
+					'type'    => 'select',
+					'options' => array( 1, 2, 3, 4, 5, 6 ),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Order in which hard filters are relaxed when nothing matches (§5d) —
+	 * currently only one hard-filter question exists, so this is trivial;
+	 * it grows alongside questions().
+	 */
+	public static function relaxation_order(): array {
+		return array( 'capacity' );
+	}
 }

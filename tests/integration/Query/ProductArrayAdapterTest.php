@@ -38,14 +38,29 @@ final class ProductArrayAdapterTest extends WP_UnitTestCase {
 		$result = ProductArrayAdapter::to_array( $product, self::ATTRIBUTE_MAP );
 
 		$this->assertSame( $id, $result['id'] );
+		$this->assertSame( 'Test Tent', $result['name'] );
+		$this->assertSame( $product->get_permalink(), $result['permalink'] );
 		$this->assertSame( 249.0, $result['price'] );
+		$this->assertIsString( $result['priceLabel'] );
+		$this->assertStringContainsString( '249.00', $result['priceLabel'] );
 		$this->assertSame( 4, $result['capacity'] );
 		$this->assertSame( 3.2, $result['packed_weight'] );
 		$this->assertSame( 3, $result['season_rating'] );
 		// Categorical string values are lowercased so rule values ('backpacking')
 		// don't have to fragilely match WooCommerce's stored display casing.
 		$this->assertSame( 'backpacking', $result['use_type'] );
-		$this->assertSame( $product, $result['_product'] );
+	}
+
+	public function test_result_is_json_safe_for_embedding_as_interactivity_api_state(): void {
+		$product = new WC_Product_Simple();
+		$product->set_name( 'Test Tent' );
+		$product->set_regular_price( '249.00' );
+		$id = $product->save();
+		$product = wc_get_product( $id );
+
+		$result = ProductArrayAdapter::to_array( $product, self::ATTRIBUTE_MAP );
+
+		$this->assertJson( wp_json_encode( $result ) );
 	}
 
 	public function test_missing_attribute_becomes_null_rather_than_erroring(): void {

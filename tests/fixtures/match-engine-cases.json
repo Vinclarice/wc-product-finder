@@ -1,0 +1,137 @@
+[
+	{
+		"name": "hard filter excludes products that do not satisfy it",
+		"products": [
+			{ "id": 1, "capacity": 4 },
+			{ "id": 2, "capacity": 2 }
+		],
+		"rules": [
+			{ "attribute": "capacity", "type": "hard", "comparator": "gte", "value": 4 }
+		],
+		"options": {},
+		"expected": {
+			"products": [
+				{ "product": { "id": 1, "capacity": 4 }, "score": 0 }
+			],
+			"relaxedAttributes": []
+		}
+	},
+	{
+		"name": "multiple hard filters require all to be satisfied",
+		"products": [
+			{ "id": 1, "capacity": 4, "use_type": "backpacking" },
+			{ "id": 2, "capacity": 4, "use_type": "car_camping" },
+			{ "id": 3, "capacity": 2, "use_type": "backpacking" }
+		],
+		"rules": [
+			{ "attribute": "capacity", "type": "hard", "comparator": "gte", "value": 4 },
+			{ "attribute": "use_type", "type": "hard", "comparator": "equals", "value": "backpacking" }
+		],
+		"options": {},
+		"expected": {
+			"products": [
+				{ "product": { "id": 1, "capacity": 4, "use_type": "backpacking" }, "score": 0 }
+			],
+			"relaxedAttributes": []
+		}
+	},
+	{
+		"name": "lte comparator excludes products above the value",
+		"products": [
+			{ "id": 1, "price": 320 },
+			{ "id": 2, "price": 400 }
+		],
+		"rules": [
+			{ "attribute": "price", "type": "hard", "comparator": "lte", "value": 350 }
+		],
+		"options": {},
+		"expected": {
+			"products": [
+				{ "product": { "id": 1, "price": 320 }, "score": 0 }
+			],
+			"relaxedAttributes": []
+		}
+	},
+	{
+		"name": "soft preferences rank by summed weight and default to top three",
+		"products": [
+			{ "id": 1, "use_type": "car_camping", "season_rating": 2 },
+			{ "id": 2, "use_type": "backpacking", "season_rating": 2 },
+			{ "id": 3, "use_type": "backpacking", "season_rating": 3 },
+			{ "id": 4, "use_type": "car_camping", "season_rating": 3 },
+			{ "id": 5, "use_type": "backpacking", "season_rating": 3 }
+		],
+		"rules": [
+			{ "attribute": "use_type", "type": "soft", "comparator": "equals", "value": "backpacking", "weight": 3 },
+			{ "attribute": "season_rating", "type": "soft", "comparator": "equals", "value": 3, "weight": 2 }
+		],
+		"options": {},
+		"expected": {
+			"products": [
+				{ "product": { "id": 3, "use_type": "backpacking", "season_rating": 3 }, "score": 5 },
+				{ "product": { "id": 5, "use_type": "backpacking", "season_rating": 3 }, "score": 5 },
+				{ "product": { "id": 2, "use_type": "backpacking", "season_rating": 2 }, "score": 3 }
+			],
+			"relaxedAttributes": []
+		}
+	},
+	{
+		"name": "tiebreaker option orders equally scored products",
+		"products": [
+			{ "id": 1, "price": 300 },
+			{ "id": 2, "price": 250 },
+			{ "id": 3, "price": 275 }
+		],
+		"rules": [],
+		"options": {
+			"tiebreaker": { "attribute": "price", "direction": "asc" }
+		},
+		"expected": {
+			"products": [
+				{ "product": { "id": 2, "price": 250 }, "score": 0 },
+				{ "product": { "id": 3, "price": 275 }, "score": 0 },
+				{ "product": { "id": 1, "price": 300 }, "score": 0 }
+			],
+			"relaxedAttributes": []
+		}
+	},
+	{
+		"name": "fallback relaxes one hard filter when nothing survives",
+		"products": [
+			{ "id": 1, "capacity": 4, "price": 400 },
+			{ "id": 2, "capacity": 2, "price": 200 }
+		],
+		"rules": [
+			{ "attribute": "capacity", "type": "hard", "comparator": "gte", "value": 4 },
+			{ "attribute": "price", "type": "hard", "comparator": "lte", "value": 300 }
+		],
+		"options": {
+			"relaxationOrder": ["price", "capacity"]
+		},
+		"expected": {
+			"products": [
+				{ "product": { "id": 1, "capacity": 4, "price": 400 }, "score": 0 }
+			],
+			"relaxedAttributes": ["price"]
+		}
+	},
+	{
+		"name": "fallback relaxes multiple hard filters in order if still nothing survives",
+		"products": [
+			{ "id": 1, "capacity": 2, "price": 400 }
+		],
+		"rules": [
+			{ "attribute": "capacity", "type": "hard", "comparator": "gte", "value": 4 },
+			{ "attribute": "price", "type": "hard", "comparator": "lte", "value": 300 }
+		],
+		"options": {
+			"relaxationOrder": ["price", "capacity"]
+		},
+		"expected": {
+			"products": [
+				{ "product": { "id": 1, "capacity": 2, "price": 400 }, "score": 0 }
+			],
+			"relaxedAttributes": ["price", "capacity"]
+		}
+	}
+]
