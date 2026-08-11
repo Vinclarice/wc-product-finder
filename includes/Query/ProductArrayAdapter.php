@@ -11,11 +11,14 @@ use WC_Product;
  * ProductFinder\Engine\MatchEngine consumes and the Interactivity API embeds
  * as client-side state (§9/§10 of PRODUCT-FINDER-PROPOSAL.md — the client
  * runs its own port of the engine against this same data, so it can't carry
- * the WC_Product object itself). WooCommerce local (non-taxonomy) product
- * attributes are always stored as strings keyed by a sanitized slug (e.g.
- * "Use Type" -> "use-type"), so this is also where that slug is mapped to
- * the finder's own attribute name and the value is cast to the type the
- * engine's comparators expect.
+ * the WC_Product object itself). Handles both WooCommerce attribute kinds a
+ * merchant can map a finder attribute to (via the admin screen's
+ * AttributeDiscovery-populated choices): local/custom attributes, stored as
+ * raw strings keyed by a sanitized slug (e.g. "Use Type" -> "use-type"), and
+ * global/taxonomy attributes, whose values are term IDs resolved here to the
+ * term's name so both kinds produce a comparable value. Either way, this is
+ * where that slug is mapped to the finder's own attribute name and the value
+ * is cast to the type the engine's comparators expect.
  */
 final class ProductArrayAdapter {
 
@@ -48,6 +51,18 @@ final class ProductArrayAdapter {
 		$attribute = $product->get_attributes()[ $slug ] ?? null;
 		if ( $attribute === null ) {
 			return null;
+		}
+
+		// Global (taxonomy) attributes store term IDs in get_options(), not
+		// raw strings the way local/custom attributes do — resolve to the
+		// term's name so both attribute kinds produce a comparable value.
+		if ( $attribute->is_taxonomy() ) {
+			$term_id = $attribute->get_options()[0] ?? null;
+			if ( $term_id === null ) {
+				return null;
+			}
+			$term = get_term( (int) $term_id, $attribute->get_taxonomy() );
+			return ( $term && ! is_wp_error( $term ) ) ? $term->name : null;
 		}
 
 		$options = $attribute->get_options();

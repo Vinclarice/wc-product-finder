@@ -22,6 +22,7 @@ final class RuleBuilderTest extends TestCase {
 		'attribute'  => 'capacity',
 		'ruleType'   => 'hard',
 		'comparator' => 'gte',
+		'valueType'  => 'int',
 		'input'      => array( 'type' => 'select' ),
 	);
 
@@ -30,7 +31,22 @@ final class RuleBuilderTest extends TestCase {
 		'attribute'  => 'use_type',
 		'ruleType'   => 'soft',
 		'comparator' => 'equals',
+		'valueType'  => 'string',
 		'weight'     => 3,
+		'input'      => array( 'type' => 'select' ),
+	);
+
+	// A soft preference using 'equals' on a *numeric* attribute — the exact
+	// shape that exposed the original bug: casting was decided by comparator
+	// (equals -> string) instead of the attribute's real type (int), so this
+	// rule's value could never match a product's actual int season_rating.
+	private const SEASON_RATING_QUESTION = array(
+		'key'        => 'season_rating',
+		'attribute'  => 'season_rating',
+		'ruleType'   => 'soft',
+		'comparator' => 'equals',
+		'valueType'  => 'int',
+		'weight'     => 2,
 		'input'      => array( 'type' => 'select' ),
 	);
 
@@ -39,6 +55,7 @@ final class RuleBuilderTest extends TestCase {
 		'attribute'  => 'packed_weight',
 		'ruleType'   => 'soft',
 		'comparator' => 'lte',
+		'valueType'  => 'float',
 		'weight'     => 2,
 		'input'      => array(
 			'type'  => 'toggle',
@@ -62,7 +79,7 @@ final class RuleBuilderTest extends TestCase {
 					'attribute'  => 'capacity',
 					'type'       => 'hard',
 					'comparator' => 'gte',
-					'value'      => 4.0,
+					'value'      => 4,
 				),
 			),
 			RuleBuilder::build( array( self::CAPACITY_QUESTION ), $answers )
@@ -82,6 +99,26 @@ final class RuleBuilderTest extends TestCase {
 				),
 			),
 			RuleBuilder::build( array( self::USE_TYPE_QUESTION ), $answers )
+		);
+	}
+
+	public function test_an_equals_comparator_on_a_numeric_question_casts_the_answer_to_a_number(): void {
+		// Regression test for the bug this exact scenario caused: an 'equals'
+		// question on a numeric attribute (season_rating) must produce a
+		// numeric rule value, not a string, or MatchEngine's strict === never
+		// matches the product's own int-typed value.
+		$answers = array( 'season_rating' => '3' ); // select values arrive as strings.
+		$this->assertSame(
+			array(
+				array(
+					'attribute'  => 'season_rating',
+					'type'       => 'soft',
+					'comparator' => 'equals',
+					'value'      => 3,
+					'weight'     => 2,
+				),
+			),
+			RuleBuilder::build( array( self::SEASON_RATING_QUESTION ), $answers )
 		);
 	}
 
@@ -118,7 +155,7 @@ final class RuleBuilderTest extends TestCase {
 					'attribute'  => 'capacity',
 					'type'       => 'hard',
 					'comparator' => 'gte',
-					'value'      => 4.0,
+					'value'      => 4,
 				),
 				array(
 					'attribute'  => 'packed_weight',

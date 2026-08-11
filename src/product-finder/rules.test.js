@@ -5,6 +5,7 @@ const CAPACITY_QUESTION = {
 	attribute: 'capacity',
 	ruleType: 'hard',
 	comparator: 'gte',
+	valueType: 'int',
 	input: { type: 'select', options: [] },
 };
 
@@ -13,7 +14,22 @@ const USE_TYPE_QUESTION = {
 	attribute: 'use_type',
 	ruleType: 'soft',
 	comparator: 'equals',
+	valueType: 'string',
 	weight: 3,
+	input: { type: 'select', options: [] },
+};
+
+// A soft preference using 'equals' on a *numeric* attribute — the exact
+// shape that exposed the original bug: casting was decided by comparator
+// (equals -> string) instead of the attribute's real type (int), so this
+// rule's value could never match a product's actual numeric season_rating.
+const SEASON_RATING_QUESTION = {
+	key: 'season_rating',
+	attribute: 'season_rating',
+	ruleType: 'soft',
+	comparator: 'equals',
+	valueType: 'int',
+	weight: 2,
 	input: { type: 'select', options: [] },
 };
 
@@ -48,6 +64,22 @@ describe( 'buildRules', () => {
 				comparator: 'equals',
 				value: 'backpacking',
 				weight: 3,
+			},
+		] );
+	} );
+
+	test( 'an equals comparator on a numeric question casts the answer to a number', () => {
+		// Regression test: an 'equals' question on a numeric attribute
+		// (season_rating) must produce a numeric rule value, not a string, or
+		// MatchEngine's strict === never matches the product's own value.
+		const answers = { season_rating: '3' }; // select values arrive as strings from the DOM
+		expect( buildRules( [ SEASON_RATING_QUESTION ], answers ) ).toEqual( [
+			{
+				attribute: 'season_rating',
+				type: 'soft',
+				comparator: 'equals',
+				value: 3,
+				weight: 2,
 			},
 		] );
 	} );

@@ -8,8 +8,10 @@ namespace ProductFinder\Templates;
  * The "Outdoor Gear Finder" starter template's pre-defined attribute
  * taxonomy (§5c/§6 of PRODUCT-FINDER-PROPOSAL.md) — merchants fill in
  * values for these WooCommerce attributes rather than inventing their own
- * structure. Becomes configurable per-merchant once the attribute-mapping
- * admin screen ships (build order step 7); hardcoded here until then.
+ * structure. These are the *defaults*; a merchant's saved overrides (via
+ * the attribute-mapping admin screen, build order step 7) are merged on top
+ * by ProductFinder\Finder\AttributeMapResolver, read from
+ * ProductFinder\Finder\ConfigRepository — see ProductFinder\Finder\FinderService.
  */
 final class TentsTemplate {
 
@@ -55,6 +57,7 @@ final class TentsTemplate {
 				'attribute'  => 'capacity',
 				'ruleType'   => 'hard',
 				'comparator' => 'gte',
+				'valueType'  => 'int', // Matches attribute_map()'s type for 'capacity'.
 				'input'      => array(
 					'type'    => 'select',
 					'options' => self::scalar_options( array( 1, 2, 3, 4, 5, 6 ) ),
@@ -66,6 +69,7 @@ final class TentsTemplate {
 				'attribute'  => 'use_type',
 				'ruleType'   => 'soft',
 				'comparator' => 'equals',
+				'valueType'  => 'string', // Matches attribute_map()'s type for 'use_type'.
 				'weight'     => 3,
 				'input'      => array(
 					'type'    => 'select',
@@ -78,6 +82,12 @@ final class TentsTemplate {
 				'attribute'  => 'season_rating',
 				'ruleType'   => 'soft',
 				'comparator' => 'equals',
+				// Matches attribute_map()'s type for 'season_rating'. This is
+				// the piece that was missing before the fix: an 'equals'
+				// comparator alone doesn't tell you whether to cast the rule
+				// value as a number or a string, and getting it wrong here
+				// (defaulting to string) meant this rule could never match.
+				'valueType'  => 'int',
 				'weight'     => 2,
 				'input'      => array(
 					'type'    => 'select',
@@ -103,6 +113,7 @@ final class TentsTemplate {
 				'attribute'  => 'price',
 				'ruleType'   => 'hard',
 				'comparator' => 'lte',
+				'valueType'  => 'float', // Matches ProductArrayAdapter's (float) cast of the product's native price.
 				'input'      => array(
 					'type'    => 'select',
 					'options' => self::scalar_options( array( 200, 300, 400, 500, 600 ) ),
@@ -114,6 +125,9 @@ final class TentsTemplate {
 				'attribute'  => 'packed_weight',
 				'ruleType'   => 'soft',
 				'comparator' => 'lte',
+				// Not actually consulted for a toggle (its rule value always
+				// comes from input.value below), included for consistency.
+				'valueType'  => 'float',
 				'weight'     => 2,
 				'input'      => array(
 					'type'  => 'toggle',

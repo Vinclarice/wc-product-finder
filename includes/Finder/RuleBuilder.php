@@ -51,15 +51,32 @@ final class RuleBuilder {
 		return $rule;
 	}
 
+	/**
+	 * Casts based on the question's declared valueType (matching
+	 * TentsTemplate::attribute_map()'s type for the same attribute), not the
+	 * comparator. This used to branch on comparator (gte/lte -> numeric,
+	 * else -> string), which silently broke season_rating: its comparator is
+	 * 'equals' but its attribute is int-typed, so the old logic always
+	 * produced a string rule value that could never strictly-equal the
+	 * product's actual int value. 'equals' specifically needs the exact same
+	 * type as the product's cast value (3 === 3.0 is false in both PHP and
+	 * JS), so int and float aren't interchangeable "numeric" here the way
+	 * they are for gte/lte.
+	 */
 	private static function rule_value( array $question, $answer_value ) {
 		// A toggle's rule value is the fixed threshold from its config (e.g.
 		// "under 5 lb"), not the checkbox's own submitted value.
 		if ( 'toggle' === $question['input']['type'] ) {
 			return $question['input']['value'];
 		}
-		if ( in_array( $question['comparator'], array( 'gte', 'lte' ), true ) ) {
-			return (float) $answer_value;
+
+		switch ( $question['valueType'] ) {
+			case 'int':
+				return (int) $answer_value;
+			case 'float':
+				return (float) $answer_value;
+			default:
+				return strtolower( trim( (string) $answer_value ) );
 		}
-		return strtolower( trim( (string) $answer_value ) );
 	}
 }

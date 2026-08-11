@@ -64,6 +64,33 @@ final class ProductArrayAdapterTest extends WP_UnitTestCase {
 		$this->assertJson( wp_json_encode( $result ) );
 	}
 
+	public function test_a_global_taxonomy_attribute_resolves_to_its_term_name_not_its_id(): void {
+		// Regression test: WC_Product_Attribute::get_options() returns integer
+		// term IDs for global/taxonomy attributes, not raw strings the way
+		// local attributes work — this is exactly the mapping choice the
+		// plugin's own attribute-discovery/mapping screen offers merchants,
+		// so it has to work, not just fatal.
+		$product = new WC_Product_Simple();
+		$product->set_name( 'Taxonomy Attr Tent' );
+		$product->set_regular_price( '199.00' );
+		$id = $product->save();
+
+		$taxonomy_attribute = self::make_taxonomy_attribute( $id, 'Test Season', '3-season' );
+
+		$product = wc_get_product( $id );
+		$product->set_attributes( array( $taxonomy_attribute ) );
+		$product->save();
+		$product = wc_get_product( $id );
+
+		$map = array(
+			'season_rating' => array( 'slug' => wc_attribute_taxonomy_name( 'Test Season' ), 'type' => 'string' ),
+		);
+
+		$result = ProductArrayAdapter::to_array( $product, $map );
+
+		$this->assertSame( '3-season', $result['season_rating'] );
+	}
+
 	public function test_missing_attribute_becomes_null_rather_than_erroring(): void {
 		$product = new WC_Product_Simple();
 		$product->set_name( 'Bare Tent' );

@@ -32,13 +32,22 @@ export function buildRule( question, answerValue ) {
 	return rule;
 }
 
+/**
+ * Casts based on the question's declared valueType (matching
+ * TentsTemplate::attribute_map()'s type for the same attribute), not the
+ * comparator. This used to branch on comparator (gte/lte -> numeric, else ->
+ * string), which silently broke season_rating: its comparator is 'equals'
+ * but its attribute is numeric, so the old logic always produced a string
+ * rule value that could never strictly-equal the product's actual numeric
+ * value embedded in state.
+ */
 function ruleValue( question, answerValue ) {
 	// A toggle's rule value is the fixed threshold from its config (e.g.
 	// "under 5 lb"), not the checkbox's own true/false answer.
 	if ( question.input.type === 'toggle' ) {
 		return question.input.value;
 	}
-	if ( question.comparator === 'gte' || question.comparator === 'lte' ) {
+	if ( question.valueType === 'int' || question.valueType === 'float' ) {
 		return Number( answerValue );
 	}
 	return String( answerValue ).toLowerCase();
