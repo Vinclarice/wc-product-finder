@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace ProductFinder\Admin;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
+
 use ProductFinder\Attributes\AttributeCompleteness;
 use ProductFinder\Attributes\AttributeDiscovery;
 use ProductFinder\Finder\AttributeMapResolver;

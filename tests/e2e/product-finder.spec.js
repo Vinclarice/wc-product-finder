@@ -178,7 +178,9 @@ test.describe( 'Product Finder - critical path', () => {
 		expect(
 			specTexts.map( ( t ) => t.replace( /\s+/g, ' ' ).trim() )
 		).toEqual( [
-			'Capacity: 1 people',
+			// Singular: this fixture sleeps one, and the capacity spec is
+			// pluralized with _n() — see TentsTemplate::format_spec_value().
+			'Capacity: 1 person',
 			'Use type: Backpacking',
 			'Season rating: 2',
 			'Packed weight: 2.9 lb',

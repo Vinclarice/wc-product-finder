@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace ProductFinder\Finder;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
+
 /**
  * Basic local aggregate event counts (build order step 9 / §8 MVP scope) —
  * "view" and "zero_match", counted only at render time in render.php.

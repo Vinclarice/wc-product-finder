@@ -313,6 +313,27 @@ final class RenderTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Nothing stops a visitor hand-editing the query string into a shape the
+	 * form itself never produces: `?product_finder[tents][capacity][]=4`
+	 * makes the answer an array where a string is expected. Casting that to
+	 * a string raises "Array to string conversion" on a public front-end
+	 * page, so an array-valued answer is dropped and treated as unanswered
+	 * instead.
+	 */
+	public function test_an_array_valued_get_answer_is_ignored_rather_than_coerced(): void {
+		$this->create_tent( 'Small Tent', 2 );
+		$this->create_tent( 'Big Tent', 6 );
+
+		$_GET['product_finder'] = array( 'tents' => array( 'capacity' => array( '4' ) ) );
+
+		$html = $this->render_block();
+
+		// Unanswered, so neither tent is filtered out.
+		$this->assertStringContainsString( 'Big Tent', $this->results_markup( $html ) );
+		$this->assertStringContainsString( 'Small Tent', $this->results_markup( $html ) );
+	}
+
+	/**
 	 * The visible, server-rendered results list only — excludes the root
 	 * element's data-wp-context attribute, which (by design, since the
 	 * multi-instance fix) carries every candidate product in the category

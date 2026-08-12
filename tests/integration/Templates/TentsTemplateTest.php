@@ -73,6 +73,18 @@ final class TentsTemplateTest extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Regression test for "Capacity: 1 people", which shipped visible on
+	 * every one-person tent's result card. Capacity is the only spec whose
+	 * unit is a countable noun, so it's the only one that needs _n() —
+	 * "1 lb" is already correct for the weight spec.
+	 */
+	public function test_format_specs_uses_a_singular_unit_for_a_capacity_of_one(): void {
+		$specs = TentsTemplate::format_specs( array( 'capacity' => 1 ), TentsTemplate::questions() );
+
+		$this->assertSame( '1 person', $specs[0]['value'] );
+	}
+
 	public function test_format_specs_uses_a_custom_question_sets_short_labels_and_attributes(): void {
 		$custom_questions = array(
 			array(

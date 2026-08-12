@@ -83,6 +83,14 @@ if ( ! is_array( $raw_get_answers ) ) {
 }
 $answers = array();
 foreach ( $raw_get_answers as $key => $value ) {
+	// A hand-edited query string can nest a further array here
+	// (?product_finder[tents][capacity][]=4), which the form itself never
+	// produces. There's no sensible scalar answer to read out of that, and
+	// casting it would raise "Array to string conversion" on a public
+	// page, so drop it and leave the question unanswered.
+	if ( is_array( $value ) ) {
+		continue;
+	}
 	$answers[ sanitize_key( $key ) ] = sanitize_text_field( wp_unslash( (string) $value ) );
 }
 

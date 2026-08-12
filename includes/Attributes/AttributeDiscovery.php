@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace ProductFinder\Attributes;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
+
 use ProductFinder\Query\AttributeValueResolver;
 use ProductFinder\Query\ProductQuery;
 

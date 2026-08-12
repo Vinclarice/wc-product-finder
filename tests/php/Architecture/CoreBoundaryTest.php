@@ -26,7 +26,9 @@ use PHPUnit\Framework\TestCase;
  */
 final class CoreBoundaryTest extends TestCase {
 
-	private const CORE_FILES = array(
+	// Public so DirectAccessGuardTest can classify the same set as core
+	// without a second copy of the list drifting from this one.
+	public const CORE_FILES = array(
 		'Engine/MatchEngine.php',
 		'Finder/RuleBuilder.php',
 		'Finder/RelaxationExplainer.php',

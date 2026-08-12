@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace ProductFinder\Finder;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
+
 use ProductFinder\Engine\MatchEngine;
 use ProductFinder\Query\ProductArrayAdapter;
 use ProductFinder\Query\ProductQuery;

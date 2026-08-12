@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace ProductFinder\Finder;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
+
 /**
  * Persists merchant-configured attribute-slug overrides (build order step 7
  * / §5c) and, per the per-category question editor epic (§13), custom

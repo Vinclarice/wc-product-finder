@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace ProductFinder\Templates;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
+
 /**
  * The "Outdoor Gear Finder" starter template's pre-defined attribute
  * taxonomy (§5c/§6 of PRODUCT-FINDER-PROPOSAL.md) — merchants fill in
@@ -209,7 +213,16 @@ final class TentsTemplate {
 	private static function format_spec_value( string $attribute, $value ): string {
 		switch ( $attribute ) {
 			case 'capacity':
-				return $value . ' ' . __( 'people', 'product-finder' );
+				// _n() rather than a concatenated unit: a one-person tent
+				// otherwise reads "1 people" on its result card. Locales
+				// whose plural rules split differently from English's
+				// one/other also need the count passed through, not just a
+				// second hardcoded string.
+				return sprintf(
+					/* translators: %s: the number of people a tent sleeps. */
+					_n( '%s person', '%s people', (int) $value, 'product-finder' ),
+					$value
+				);
 			case 'packed_weight':
 				return $value . ' ' . __( 'lb', 'product-finder' );
 			case 'use_type':

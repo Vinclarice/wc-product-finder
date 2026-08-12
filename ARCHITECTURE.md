@@ -39,6 +39,8 @@ The rule is enforced by two tests, not just this document:
 - `tests/php/Architecture/CoreBoundaryTest.php` — tokenizes each core PHP file (via `token_get_all()`, so comments/strings can't cause false positives) and fails if it finds a call to `wp_*`/`WC_*`/`WP_*` or a short list of option/hook/capability functions.
 - `src/product-finder/coreBoundary.test.js` — fails if `matchEngine.js`, `rules.js`, or `relaxationExplainer.js` import an `@wordpress/*` or `@woocommerce/*` package.
 
+- `tests/php/Architecture/DirectAccessGuardTest.php` — asserts every *shell* file under `includes/` carries the conventional `if ( ! defined( 'ABSPATH' ) ) { exit; }` guard WordPress.org expects, and that no *core* file does. The asymmetry is forced, not stylistic: `phpunit.xml` bootstraps `vendor/autoload.php` and nothing else, so `ABSPATH` is undefined during the core suite and the guard would `exit` the PHPUnit process the moment Composer autoloaded a core class. Core files declare a class and run no statements at file scope, so being unguarded costs nothing — requesting one directly produces no output and no side effects. Shell classification is derived (anything under `includes/` that isn't in `CORE_FILES`), so a new shell file fails until it's guarded.
+
 Both run as part of the normal `npm run test:php` / `npm run test:js`. Adding a new core module means adding it to both files' file lists — that's intentional; the list is meant to require a conscious decision, not silently expand.
 
 No dependency-analysis tool (e.g. Deptrac) yet — there's exactly one boundary to check today, and a plain test needs nothing new installed. If more layers/boundaries show up later (see "revisit" above), that's the point to reconsider.
