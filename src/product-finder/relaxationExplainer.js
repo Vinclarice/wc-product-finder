@@ -13,6 +13,10 @@
  * client-recomputed text, shown only once JS hydration takes over
  * reactivity, stays plain English until WordPress's script-module system
  * supports @wordpress/i18n.
+ *
+ * @param {string[]} relaxedAttributes Attributes that had to be relaxed to find matches.
+ * @param {object[]} questions         The effective question set, used to look up short labels.
+ * @return {?string} The shopper-facing explanation, or null if nothing was relaxed.
  */
 export function explainRelaxation( relaxedAttributes, questions ) {
 	const labels = labelsFor( relaxedAttributes, questions );
@@ -23,7 +27,9 @@ export function explainRelaxation( relaxedAttributes, questions ) {
 
 	const noun = labels.length === 1 ? 'preference' : 'preferences';
 
-	return `We relaxed your ${ joinWithAnd( labels ) } ${ noun } to show you more options.`;
+	return `We relaxed your ${ joinWithAnd(
+		labels
+	) } ${ noun } to show you more options.`;
 }
 
 function labelsFor( relaxedAttributes, questions ) {

@@ -12,7 +12,12 @@
  */
 import { __, sprintf } from '@wordpress/i18n';
 import { InspectorControls, useBlockProps } from '@wordpress/block-editor';
-import { Notice, PanelBody, SelectControl, Spinner } from '@wordpress/components';
+import {
+	Notice,
+	PanelBody,
+	SelectControl,
+	Spinner,
+} from '@wordpress/components';
 import { useSelect } from '@wordpress/data';
 import { store as coreStore } from '@wordpress/core-data';
 
@@ -35,7 +40,11 @@ export default function Edit( { attributes, setAttributes } ) {
 	const { categories, isLoading } = useSelect( ( select ) => {
 		const { getEntityRecords, isResolving } = select( coreStore );
 		return {
-			categories: getEntityRecords( 'taxonomy', 'product_cat', CATEGORY_QUERY ),
+			categories: getEntityRecords(
+				'taxonomy',
+				'product_cat',
+				CATEGORY_QUERY
+			),
 			isLoading: isResolving( 'getEntityRecords', [
 				'taxonomy',
 				'product_cat',
@@ -59,7 +68,9 @@ export default function Edit( { attributes, setAttributes } ) {
 	return (
 		<>
 			<InspectorControls>
-				<PanelBody title={ __( 'Product Finder settings', 'product-finder' ) }>
+				<PanelBody
+					title={ __( 'Product Finder settings', 'product-finder' ) }
+				>
 					{ isLoading && ! categories ? (
 						<Spinner />
 					) : (
@@ -76,14 +87,15 @@ export default function Edit( { attributes, setAttributes } ) {
 							) }
 						/>
 					) }
-					{ productCategory && productCategory !== TEMPLATE_CATEGORY && (
-						<Notice status="warning" isDismissible={ false }>
-							{ __(
-								'The starter template\'s questions default to tent-phrased wording (e.g. "How many people will sleep in it?") unless you\'ve set up custom questions for this category on the Product Finder settings screen (WooCommerce → Product Finder).',
-								'product-finder'
-							) }
-						</Notice>
-					) }
+					{ productCategory &&
+						productCategory !== TEMPLATE_CATEGORY && (
+							<Notice status="warning" isDismissible={ false }>
+								{ __(
+									'The starter template\'s questions default to tent-phrased wording (e.g. "How many people will sleep in it?") unless you\'ve set up custom questions for this category on the Product Finder settings screen (WooCommerce → Product Finder).',
+									'product-finder'
+								) }
+							</Notice>
+						) }
 				</PanelBody>
 			</InspectorControls>
 			<div { ...useBlockProps() }>
@@ -91,8 +103,13 @@ export default function Edit( { attributes, setAttributes } ) {
 					{ productCategory
 						? sprintf(
 								/* translators: %s: the selected category's name (or its slug, if the category couldn't be found) */
-								__( 'Product Finder — showing products from “%s”.', 'product-finder' ),
-								selectedCategory ? selectedCategory.name : productCategory
+								__(
+									'Product Finder — showing products from “%s”.',
+									'product-finder'
+								),
+								selectedCategory
+									? selectedCategory.name
+									: productCategory
 						  )
 						: __(
 								'Product Finder — choose a category in the block settings sidebar.',

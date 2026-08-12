@@ -7,7 +7,6 @@
  */
 import { match } from './matchEngine';
 
-// eslint-disable-next-line import/no-unresolved
 import fixtureCases from '../../tests/fixtures/match-engine-cases.json';
 
 describe( 'matchEngine fixture parity', () => {

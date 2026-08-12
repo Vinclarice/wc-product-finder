@@ -45,13 +45,20 @@ const PACKED_WEIGHT_QUESTION = {
 describe( 'buildRules', () => {
 	test( 'unanswered questions produce no rules', () => {
 		const answers = { capacity: null, use_type: '' };
-		expect( buildRules( [ CAPACITY_QUESTION, USE_TYPE_QUESTION ], answers ) ).toEqual( [] );
+		expect(
+			buildRules( [ CAPACITY_QUESTION, USE_TYPE_QUESTION ], answers )
+		).toEqual( [] );
 	} );
 
 	test( 'a hard numeric question casts the answer to a number', () => {
 		const answers = { capacity: '4' }; // select values arrive as strings from the DOM
 		expect( buildRules( [ CAPACITY_QUESTION ], answers ) ).toEqual( [
-			{ attribute: 'capacity', type: 'hard', comparator: 'gte', value: 4 },
+			{
+				attribute: 'capacity',
+				type: 'hard',
+				comparator: 'gte',
+				value: 4,
+			},
 		] );
 	} );
 
@@ -94,9 +101,15 @@ describe( 'buildRules', () => {
 	} );
 
 	test( 'a toggle question is included only when checked, using its fixed threshold', () => {
-		expect( buildRules( [ PACKED_WEIGHT_QUESTION ], { packed_weight: false } ) ).toEqual( [] );
-		expect( buildRules( [ PACKED_WEIGHT_QUESTION ], { packed_weight: null } ) ).toEqual( [] );
-		expect( buildRules( [ PACKED_WEIGHT_QUESTION ], { packed_weight: true } ) ).toEqual( [
+		expect(
+			buildRules( [ PACKED_WEIGHT_QUESTION ], { packed_weight: false } )
+		).toEqual( [] );
+		expect(
+			buildRules( [ PACKED_WEIGHT_QUESTION ], { packed_weight: null } )
+		).toEqual( [] );
+		expect(
+			buildRules( [ PACKED_WEIGHT_QUESTION ], { packed_weight: true } )
+		).toEqual( [
 			{
 				attribute: 'packed_weight',
 				type: 'soft',
@@ -110,10 +123,28 @@ describe( 'buildRules', () => {
 	test( 'mixed answers only produce rules for the answered questions', () => {
 		const answers = { capacity: '4', use_type: null, packed_weight: true };
 		expect(
-			buildRules( [ CAPACITY_QUESTION, USE_TYPE_QUESTION, PACKED_WEIGHT_QUESTION ], answers )
+			buildRules(
+				[
+					CAPACITY_QUESTION,
+					USE_TYPE_QUESTION,
+					PACKED_WEIGHT_QUESTION,
+				],
+				answers
+			)
 		).toEqual( [
-			{ attribute: 'capacity', type: 'hard', comparator: 'gte', value: 4 },
-			{ attribute: 'packed_weight', type: 'soft', comparator: 'lte', value: 5, weight: 2 },
+			{
+				attribute: 'capacity',
+				type: 'hard',
+				comparator: 'gte',
+				value: 4,
+			},
+			{
+				attribute: 'packed_weight',
+				type: 'soft',
+				comparator: 'lte',
+				value: 5,
+				weight: 2,
+			},
 		] );
 	} );
 } );

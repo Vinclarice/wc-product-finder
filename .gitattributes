@@ -1,0 +1,24 @@
+# Line endings
+#
+# The repository stores LF, and every working tree gets LF, regardless of a
+# contributor's core.autocrlf setting. Without this, a Windows checkout gets
+# CRLF (core.autocrlf=true is the Git for Windows default), which contradicts
+# .editorconfig's `end_of_line = lf` and made Prettier fail with a "Delete ␍"
+# error on essentially every line of the project — 299 of 380 lint errors.
+* text=auto eol=lf
+
+# Binary files Git must never run through line-ending conversion.
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.webp  binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.eot   binary
+*.zip   binary
+
+# Compiled gettext catalogues, if translations are ever shipped.
+*.mo    binary

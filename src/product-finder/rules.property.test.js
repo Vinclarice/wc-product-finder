@@ -44,7 +44,8 @@ const answeredQuestionsArb = fc
 	.map( ( answeredSubset ) => {
 		const answers = {};
 		answeredSubset.forEach( ( question ) => {
-			answers[ question.key ] = question.input.type === 'toggle' ? true : '5';
+			answers[ question.key ] =
+				question.input.type === 'toggle' ? true : '5';
 		} );
 		return [ QUESTION_POOL, answers ];
 	} );

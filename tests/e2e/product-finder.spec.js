@@ -76,9 +76,7 @@ test.describe( 'Product Finder - critical path', () => {
 			window.__e2eNoReloadMarker = 'still-here';
 		} );
 
-		await page
-			.getByLabel( CAPACITY_LABEL )
-			.selectOption( '6' );
+		await page.getByLabel( CAPACITY_LABEL ).selectOption( '6' );
 
 		// Hard filter (capacity >= 6): only the three 6-person tents qualify,
 		// sorted by price ascending (the default tiebreaker).

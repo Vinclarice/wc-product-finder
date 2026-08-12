@@ -38,27 +38,38 @@ function satisfiesAll( product, rules ) {
  * (in the merchant-defined order) if nothing survives, until either
  * something survives or every hard rule has been relaxed.
  *
+ * @param {object[]} products        Candidate products in the engine's plain array shape.
+ * @param {object[]} hardRules       Hard rules every survivor must satisfy.
+ * @param {string[]} relaxationOrder Attribute names, in the order they may be relaxed.
  * @return {[object[], string[]]} Survivors, and which attributes were relaxed to get them.
  */
 function survivorsWithRelaxation( products, hardRules, relaxationOrder ) {
 	let activeRules = hardRules;
 	const relaxed = [];
 
-	let survivors = products.filter( ( product ) => satisfiesAll( product, activeRules ) );
+	let survivors = products.filter( ( product ) =>
+		satisfiesAll( product, activeRules )
+	);
 
 	for ( const attribute of relaxationOrder ) {
 		if ( survivors.length > 0 ) {
 			break;
 		}
 
-		const hadActiveRule = activeRules.some( ( rule ) => rule.attribute === attribute );
+		const hadActiveRule = activeRules.some(
+			( rule ) => rule.attribute === attribute
+		);
 
-		activeRules = activeRules.filter( ( rule ) => rule.attribute !== attribute );
+		activeRules = activeRules.filter(
+			( rule ) => rule.attribute !== attribute
+		);
 		if ( hadActiveRule ) {
 			relaxed.push( attribute );
 		}
 
-		survivors = products.filter( ( product ) => satisfiesAll( product, activeRules ) );
+		survivors = products.filter( ( product ) =>
+			satisfiesAll( product, activeRules )
+		);
 	}
 
 	return [ survivors, relaxed ];
@@ -66,7 +77,8 @@ function survivorsWithRelaxation( products, hardRules, relaxationOrder ) {
 
 function score( product, softRules ) {
 	return softRules.reduce(
-		( total, rule ) => total + ( satisfies( product, rule ) ? rule.weight : 0 ),
+		( total, rule ) =>
+			total + ( satisfies( product, rule ) ? rule.weight : 0 ),
 		0
 	);
 }

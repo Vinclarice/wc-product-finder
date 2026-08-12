@@ -15,7 +15,9 @@ const QUESTIONS = [
 	{ attribute: 'season_rating', shortLabel: 'Season rating' },
 ];
 
-const relaxedAttributesArb = fc.subarray( QUESTIONS.map( ( q ) => q.attribute ) );
+const relaxedAttributesArb = fc.subarray(
+	QUESTIONS.map( ( q ) => q.attribute )
+);
 
 function shortLabelFor( attribute ) {
 	const question = QUESTIONS.find( ( q ) => q.attribute === attribute );
@@ -29,7 +31,10 @@ describe( 'explainRelaxation (property-based)', () => {
 	it( 'returns null exactly when nothing was relaxed', () => {
 		fc.assert(
 			fc.property( relaxedAttributesArb, ( relaxedAttributes ) => {
-				const result = explainRelaxation( relaxedAttributes, QUESTIONS );
+				const result = explainRelaxation(
+					relaxedAttributes,
+					QUESTIONS
+				);
 
 				if ( relaxedAttributes.length === 0 ) {
 					expect( result ).toBeNull();
@@ -43,7 +48,10 @@ describe( 'explainRelaxation (property-based)', () => {
 	it( "mentions every relaxed attribute's short label", () => {
 		fc.assert(
 			fc.property( relaxedAttributesArb, ( relaxedAttributes ) => {
-				const result = explainRelaxation( relaxedAttributes, QUESTIONS );
+				const result = explainRelaxation(
+					relaxedAttributes,
+					QUESTIONS
+				);
 
 				if ( relaxedAttributes.length === 0 ) {
 					return;

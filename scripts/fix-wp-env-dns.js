@@ -9,8 +9,8 @@
  * Runs automatically via the "postinstall" script since node_modules
  * changes don't survive npm install otherwise.
  */
-const fs = require('fs');
-const path = require('path');
+const fs = require( 'fs' );
+const path = require( 'path' );
 
 const target = path.join(
 	__dirname,
@@ -22,25 +22,27 @@ const target = path.join(
 	'wordpress.js'
 );
 
-if (!fs.existsSync(target)) {
+if ( ! fs.existsSync( target ) ) {
 	// @wordpress/env isn't installed (e.g. a CI job that doesn't need it) — nothing to do.
-	process.exit(0);
+	process.exit( 0 );
 }
 
-const original = fs.readFileSync(target, 'utf8');
+const original = fs.readFileSync( target, 'utf8' );
 const broken = "dns.resolve( 'WordPress.org' )";
 const fixed = "dns.lookup( 'WordPress.org' )";
 
-if (original.includes(fixed)) {
-	process.exit(0); // Already patched.
+if ( original.includes( fixed ) ) {
+	process.exit( 0 ); // Already patched.
 }
 
-if (!original.includes(broken)) {
+if ( ! original.includes( broken ) ) {
 	console.warn(
 		'[fix-wp-env-dns] Expected pattern not found in @wordpress/env/lib/wordpress.js — package may have changed, skipping patch.'
 	);
-	process.exit(0);
+	process.exit( 0 );
 }
 
-fs.writeFileSync(target, original.replace(broken, fixed));
-console.log('[fix-wp-env-dns] Patched @wordpress/env to use dns.lookup() instead of dns.resolve().');
+fs.writeFileSync( target, original.replace( broken, fixed ) );
+console.log(
+	'[fix-wp-env-dns] Patched @wordpress/env to use dns.lookup() instead of dns.resolve().'
+);

@@ -49,7 +49,9 @@ function satisfies( actual, rule ) {
 }
 
 function satisfiesAll( product, rules ) {
-	return rules.every( ( rule ) => satisfies( product[ rule.attribute ], rule ) );
+	return rules.every( ( rule ) =>
+		satisfies( product[ rule.attribute ], rule )
+	);
 }
 
 describe( 'match (property-based)', () => {
@@ -65,7 +67,9 @@ describe( 'match (property-based)', () => {
 						relaxationOrder: attributesOf( hardRules ),
 					} );
 
-					expect( result.products.length ).toBeLessThanOrEqual( limit );
+					expect( result.products.length ).toBeLessThanOrEqual(
+						limit
+					);
 				}
 			)
 		);
@@ -80,7 +84,8 @@ describe( 'match (property-based)', () => {
 				} );
 
 				const activeRules = hardRules.filter(
-					( rule ) => ! result.relaxedAttributes.includes( rule.attribute )
+					( rule ) =>
+						! result.relaxedAttributes.includes( rule.attribute )
 				);
 
 				result.products.forEach( ( entry ) => {
@@ -97,8 +102,8 @@ describe( 'match (property-based)', () => {
 	it( 'only relaxes when the full hard rule set matches nothing', () => {
 		fc.assert(
 			fc.property( productsArb, hardRulesArb, ( products, hardRules ) => {
-				const anythingMatchesEveryHardRule = products.some( ( product ) =>
-					satisfiesAll( product, hardRules )
+				const anythingMatchesEveryHardRule = products.some(
+					( product ) => satisfiesAll( product, hardRules )
 				);
 
 				const result = match( products, hardRules, {

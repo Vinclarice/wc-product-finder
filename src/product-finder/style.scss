@@ -60,13 +60,13 @@
 		font-size: 0.9375rem;
 	}
 
-	&:has(input[type='checkbox']) {
+	&:has(input[type="checkbox"]) {
 		flex: 0 0 auto;
 		flex-direction: row;
 		align-items: center;
 		gap: 0.5rem;
 
-		input[type='checkbox'] {
+		input[type="checkbox"] {
 			width: 1.125rem;
 			height: 1.125rem;
 		}

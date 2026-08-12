@@ -8,7 +8,9 @@
 
 export function buildRules( questions, answers ) {
 	return questions
-		.filter( ( question ) => shouldIncludeRule( question, answers[ question.key ] ) )
+		.filter( ( question ) =>
+			shouldIncludeRule( question, answers[ question.key ] )
+		)
 		.map( ( question ) => buildRule( question, answers[ question.key ] ) );
 }
 
@@ -16,14 +18,19 @@ export function shouldIncludeRule( question, answerValue ) {
 	if ( question.input.type === 'toggle' ) {
 		return answerValue === true;
 	}
-	if ( answerValue === undefined || answerValue === null || answerValue === '' ) {
+	if (
+		answerValue === undefined ||
+		answerValue === null ||
+		answerValue === ''
+	) {
 		return false;
 	}
 	// A malformed answer to a numeric question (only reachable by tampering
 	// with the DOM directly, since <select> option values are always
 	// well-formed) is treated as unanswered rather than coerced — kept in
 	// sync with RuleBuilder.php's equivalent guard for the no-JS $_GET path.
-	const isNumericType = question.valueType === 'int' || question.valueType === 'float';
+	const isNumericType =
+		question.valueType === 'int' || question.valueType === 'float';
 	return ! isNumericType || ! Number.isNaN( Number( answerValue ) );
 }
 
@@ -48,6 +55,10 @@ export function buildRule( question, answerValue ) {
  * but its attribute is numeric, so the old logic always produced a string
  * rule value that could never strictly-equal the product's actual numeric
  * value embedded in state.
+ *
+ * @param {Object} question    The question config, including its declared valueType.
+ * @param {string} answerValue The shopper's raw answer for that question.
+ * @return {string|number} The rule value, cast to the type the comparators expect.
  */
 function ruleValue( question, answerValue ) {
 	// A toggle's rule value is the fixed threshold from its config (e.g.

@@ -32,7 +32,9 @@ test.describe( 'Product Finder - editor category control', () => {
 		// value, not just an empty/placeholder state.
 		await expect( categorySelect ).toHaveValue( 'tents' );
 
-		const optionLabels = await categorySelect.locator( 'option' ).allTextContents();
+		const optionLabels = await categorySelect
+			.locator( 'option' )
+			.allTextContents();
 		expect( optionLabels ).toContain( 'Tents' );
 		// Every WooCommerce site has this default category — confirms the
 		// list is genuinely fetched from the site's real taxonomy terms via
@@ -41,7 +43,9 @@ test.describe( 'Product Finder - editor category control', () => {
 
 		// The canvas preview should reflect the currently-selected category.
 		await expect(
-			editor.canvas.getByText( 'Product Finder — showing products from', { exact: false } )
+			editor.canvas.getByText( 'Product Finder — showing products from', {
+				exact: false,
+			} )
 		).toBeVisible();
 
 		// No mismatch warning for the one category this template's copy
@@ -69,7 +73,9 @@ test.describe( 'Product Finder - editor category control', () => {
 		).toBeVisible();
 
 		const blocks = await editor.getBlocks();
-		expect( blocks[ 0 ].attributes.productCategory ).toBe( 'uncategorized' );
+		expect( blocks[ 0 ].attributes.productCategory ).toBe(
+			'uncategorized'
+		);
 
 		// Picking any category other than "tents" surfaces the caveat that
 		// its questions default to tent-phrased wording unless customized —

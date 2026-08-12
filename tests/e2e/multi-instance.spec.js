@@ -30,7 +30,9 @@ test.describe( 'Product Finder - multiple instances on one page', () => {
 	} ) => {
 		await page.goto( MULTI_INSTANCE_PAGE );
 
-		const instances = page.locator( '.wp-block-product-finder-product-finder' );
+		const instances = page.locator(
+			'.wp-block-product-finder-product-finder'
+		);
 		await expect( instances ).toHaveCount( 2 );
 		const tentsInstance = instances.nth( 0 );
 		const emptyCategoryInstance = instances.nth( 1 );
@@ -41,7 +43,9 @@ test.describe( 'Product Finder - multiple instances on one page', () => {
 		await expect(
 			tentsInstance.locator( '.product-finder__result' ).first()
 		).toBeVisible();
-		await expect( emptyCategoryInstance.getByText( NO_PRODUCTS_TEXT ) ).toBeVisible();
+		await expect(
+			emptyCategoryInstance.getByText( NO_PRODUCTS_TEXT )
+		).toBeVisible();
 		await expect(
 			emptyCategoryInstance.locator( '.product-finder__result' )
 		).toHaveCount( 0 );
@@ -58,7 +62,9 @@ test.describe( 'Product Finder - multiple instances on one page', () => {
 		// showing its own fallback message, and - the corruption this bug
 		// actually produces - has not picked up any of the tents instance's
 		// products.
-		await expect( emptyCategoryInstance.getByText( NO_PRODUCTS_TEXT ) ).toBeVisible();
+		await expect(
+			emptyCategoryInstance.getByText( NO_PRODUCTS_TEXT )
+		).toBeVisible();
 		await expect(
 			emptyCategoryInstance.locator( '.product-finder__result' )
 		).toHaveCount( 0 );

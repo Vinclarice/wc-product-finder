@@ -16,13 +16,18 @@ const FORBIDDEN_IMPORT_PATTERN = /from\s+['"]@(wordpress|woocommerce)\//;
 
 describe.each( CORE_FILES )( '%s', ( filename ) => {
 	it( 'never imports a WordPress or WooCommerce package', () => {
-		const source = fs.readFileSync( path.join( __dirname, filename ), 'utf8' );
+		const source = fs.readFileSync(
+			path.join( __dirname, filename ),
+			'utf8'
+		);
 
 		const violations = source
 			.split( '\n' )
 			.map( ( line, index ) => ( { line, number: index + 1 } ) )
 			.filter( ( { line } ) => FORBIDDEN_IMPORT_PATTERN.test( line ) )
-			.map( ( { line, number } ) => `  line ${ number }: ${ line.trim() }` );
+			.map(
+				( { line, number } ) => `  line ${ number }: ${ line.trim() }`
+			);
 
 		expect( violations ).toEqual( [] );
 	} );

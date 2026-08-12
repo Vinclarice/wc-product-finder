@@ -34,7 +34,8 @@ import { explainRelaxation } from './relaxationExplainer';
 const { state } = store( 'product-finder', {
 	state: {
 		get results() {
-			const { products, questions, answers, relaxationOrder } = getContext();
+			const { products, questions, answers, relaxationOrder } =
+				getContext();
 			const rules = buildRules( questions, answers );
 			const result = match( products, rules, {
 				tiebreaker: { attribute: 'price', direction: 'asc' },
