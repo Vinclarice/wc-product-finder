@@ -89,11 +89,31 @@ function compareByTiebreaker( a, b, tiebreaker ) {
 	}
 
 	const { attribute, direction } = tiebreaker;
-	const av = a.product[ attribute ];
-	const bv = b.product[ attribute ];
-	const comparison = av < bv ? -1 : av > bv ? 1 : 0;
+	const comparison = spaceship(
+		a.product[ attribute ],
+		b.product[ attribute ]
+	);
 
 	return direction === 'desc' ? -comparison : comparison;
+}
+
+/**
+ * PHP's <=> operator, which MatchEngine.php uses for the same comparison.
+ * Extracted rather than written inline so the two ports stay legible as
+ * mirrors of each other — and because the inline form was a nested ternary.
+ *
+ * @param {*} a Left-hand value.
+ * @param {*} b Right-hand value.
+ * @return {number} -1, 0, or 1.
+ */
+function spaceship( a, b ) {
+	if ( a < b ) {
+		return -1;
+	}
+	if ( a > b ) {
+		return 1;
+	}
+	return 0;
 }
 
 export function match( products, rules, options = {} ) {

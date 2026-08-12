@@ -1,5 +1,8 @@
+/* eslint-disable no-console -- A postinstall CLI script: its console output
+   is the only way it reports what it patched, or why it declined to. */
+
 /**
- * @wordpress/env's offline-detection check uses dns.resolve() (a raw DNS
+ * The `@wordpress/env` package's offline-detection check uses dns.resolve() (a raw DNS
  * protocol query), which fails with ECONNREFUSED on some networks/sandboxes
  * even though normal DNS resolution (dns.lookup, used by fetch/curl/got)
  * works fine. When that check misfires, wp-env silently skips downloading

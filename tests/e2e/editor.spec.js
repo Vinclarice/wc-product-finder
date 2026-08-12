@@ -7,8 +7,8 @@
  * product-finder.spec.js since this is editor behavior, not front-end
  * critical-path behavior.
  *
- * Authentication is handled automatically by
- * @wordpress/e2e-test-utils-playwright's worker-scoped requestUtils fixture
+ * Authentication is handled automatically by the
+ * `@wordpress/e2e-test-utils-playwright` package's worker-scoped requestUtils fixture
  * (default admin/password, matching wp-env's own defaults) against this
  * config's baseURL — no custom login code needed.
  */

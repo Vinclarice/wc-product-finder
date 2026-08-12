@@ -1,3 +1,10 @@
+/* eslint-disable jest/no-conditional-expect -- A property of the form
+   "when X holds, Y must hold" is an implication, and expressing it means
+   asserting inside the X branch. The rule targets expects hidden in
+   try/catch or in branches that may never run in an example-based test;
+   here fast-check drives both branches across generated inputs, and the
+   PHP mirrors (see *PropertyTest.php) express the same implications. */
+
 /**
  * Property-based tests for relaxationExplainer.js, alongside the existing
  * example-based relaxationExplainer.fixtures.test.js. Mirrors
@@ -48,14 +55,14 @@ describe( 'explainRelaxation (property-based)', () => {
 	it( "mentions every relaxed attribute's short label", () => {
 		fc.assert(
 			fc.property( relaxedAttributesArb, ( relaxedAttributes ) => {
+				if ( relaxedAttributes.length === 0 ) {
+					return;
+				}
+
 				const result = explainRelaxation(
 					relaxedAttributes,
 					QUESTIONS
 				);
-
-				if ( relaxedAttributes.length === 0 ) {
-					return;
-				}
 
 				relaxedAttributes.forEach( ( attribute ) => {
 					expect( result ).toContain( shortLabelFor( attribute ) );

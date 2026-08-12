@@ -1,3 +1,7 @@
+/* eslint-disable no-console -- Playwright surfaces globalSetup's console
+   output as the suite's own startup log; without it a slow seed or a failed
+   login looks like the run simply hanging. */
+
 /**
  * One-time setup for the e2e suite:
  *
