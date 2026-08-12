@@ -313,6 +313,47 @@ final class RenderTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The server-rendered counterpart of
+	 * ProductArrayAdapterTest::test_a_variable_product_is_purchasable_but_not_over_ajax:
+	 * whatever the adapter reports has to actually reach the markup, since
+	 * it's the class on the anchor that decides whether WooCommerce's
+	 * wc-add-to-cart.js hijacks the click.
+	 */
+	public function test_a_variable_products_result_card_omits_the_ajax_add_to_cart_class(): void {
+		self::make_variable_product( 'Convertible Tent', '299.00', array( $this->category_id ) );
+
+		$results = $this->results_markup( $this->render_block() );
+
+		$this->assertStringContainsString( 'Convertible Tent', $results );
+		$this->assertStringContainsString( 'Select options', $results );
+		// Asserted against the rendered class attribute rather than the
+		// markup as a whole: the Interactivity API leaves the unexpanded
+		// <template> in place next to the expanded results, and it still
+		// carries the literal data-wp-class--ajax_add_to_cart directive
+		// name. A bare "does the string appear anywhere" check would match
+		// that and pass no matter what the real class attribute said.
+		$this->assertStringContainsString( 'class="button add_to_cart_button"', $results );
+		$this->assertStringNotContainsString( 'class="button add_to_cart_button ajax_add_to_cart"', $results );
+	}
+
+	public function test_a_simple_in_stock_products_result_card_keeps_the_ajax_add_to_cart_class(): void {
+		// Priced deliberately: create_tent() leaves the price unset, which
+		// makes a product unpurchasable, so it would render "Read more" and
+		// prove nothing about the purchasable path.
+		$product = new WC_Product_Simple();
+		$product->set_name( 'Buyable Tent' );
+		$product->set_status( 'publish' );
+		$product->set_regular_price( '199.00' );
+		$product->set_category_ids( array( $this->category_id ) );
+		$product->save();
+
+		$results = $this->results_markup( $this->render_block() );
+
+		$this->assertStringContainsString( 'Add to cart', $results );
+		$this->assertStringContainsString( 'class="button add_to_cart_button ajax_add_to_cart"', $results );
+	}
+
+	/**
 	 * Nothing stops a visitor hand-editing the query string into a shape the
 	 * form itself never produces: `?product_finder[tents][capacity][]=4`
 	 * makes the answer an array where a string is expected. Casting that to

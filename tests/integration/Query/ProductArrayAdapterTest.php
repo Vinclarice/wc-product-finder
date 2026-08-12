@@ -53,6 +53,52 @@ final class ProductArrayAdapterTest extends WP_UnitTestCase {
 		$this->assertTrue( $result['inStock'] );
 	}
 
+	public function test_a_simple_in_stock_product_can_be_added_to_the_cart_over_ajax(): void {
+		$product = new WC_Product_Simple();
+		$product->set_name( 'Buyable Tent' );
+		$product->set_regular_price( '199.00' );
+		$id      = $product->save();
+		$product = wc_get_product( $id );
+
+		$result = ProductArrayAdapter::to_array( $product, self::ATTRIBUTE_MAP );
+
+		$this->assertTrue( $result['isPurchasable'] );
+		$this->assertTrue( $result['supportsAjaxAddToCart'] );
+		$this->assertSame( 'Add to cart', $result['addToCartLabel'] );
+	}
+
+	/**
+	 * Regression test: a variable product is purchasable, but not from a
+	 * listing — the shopper has to choose a variation first. The result card
+	 * used to carry WooCommerce's ajax_add_to_cart class unconditionally, so
+	 * wc-add-to-cart.js fired an AJAX add that could not succeed instead of
+	 * sending the shopper to the product page.
+	 */
+	public function test_a_variable_product_is_purchasable_but_not_over_ajax(): void {
+		$product = self::make_variable_product( 'Convertible Tent', '299.00' );
+
+		$result = ProductArrayAdapter::to_array( $product, self::ATTRIBUTE_MAP );
+
+		$this->assertTrue( $result['isPurchasable'] );
+		$this->assertFalse( $result['supportsAjaxAddToCart'] );
+		$this->assertSame( 'Select options', $result['addToCartLabel'] );
+	}
+
+	public function test_an_out_of_stock_product_is_neither_purchasable_nor_ajax_addable(): void {
+		$product = new WC_Product_Simple();
+		$product->set_name( 'Sold Out Tent' );
+		$product->set_regular_price( '199.00' );
+		$product->set_stock_status( 'outofstock' );
+		$id      = $product->save();
+		$product = wc_get_product( $id );
+
+		$result = ProductArrayAdapter::to_array( $product, self::ATTRIBUTE_MAP );
+
+		$this->assertFalse( $result['inStock'] );
+		$this->assertFalse( $result['isPurchasable'] );
+		$this->assertFalse( $result['supportsAjaxAddToCart'] );
+	}
+
 	public function test_a_product_with_no_featured_image_gets_woocommerces_placeholder_image(): void {
 		$product = new WC_Product_Simple();
 		$product->set_name( 'Imageless Tent' );

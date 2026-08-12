@@ -21,7 +21,7 @@ Product Finder helps shoppers narrow a high-consideration WooCommerce catalogue 
 2. Matching products update live, powered by the WordPress Interactivity API — no page reload.
 3. Each question is either a **hard filter** (must match, e.g. "sleeps at least 4") or a **weighted soft preference** (e.g. "prefers backpacking use"), so results are ranked, not just filtered.
 4. If nothing matches every filter, Product Finder automatically relaxes constraints — in an order the merchant controls — and tells the shopper exactly what was relaxed and why, instead of just showing an empty page.
-5. Each result shows its image, price, stock status, and the key specs that mattered to the match, with an "Add to cart" button right there.
+5. Each result shows its image, price, stock status, and the key specs that mattered to the match, with an "Add to cart" button right there — or, for a variable product, a "Select options" link through to choose a variation.
 
 = Built for the merchant, not just the shopper =
 

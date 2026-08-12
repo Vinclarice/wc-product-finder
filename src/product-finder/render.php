@@ -288,15 +288,24 @@ wp_interactivity_state(
 							</li>
 						</template>
 					</ul>
+					<?php
+					// Both classes are per-product, not fixed: WooCommerce's
+					// wc-add-to-cart.js binds to .ajax_add_to_cart, and a
+					// variable/grouped/external product can't be added from a
+					// listing at all. Applying them unconditionally made the
+					// button silently fail on those. See
+					// ProductArrayAdapter::to_array().
+					?>
 					<a
-						class="button add_to_cart_button ajax_add_to_cart"
+						class="button"
+						data-wp-class--add_to_cart_button="context.result.product.isPurchasable"
+						data-wp-class--ajax_add_to_cart="context.result.product.supportsAjaxAddToCart"
 						data-wp-bind--href="context.result.product.addToCartUrl"
 						data-wp-bind--data-product_id="context.result.product.id"
 						data-quantity="1"
 						rel="nofollow"
-					>
-						<?php esc_html_e( 'Add to cart', 'product-finder' ); ?>
-					</a>
+						data-wp-text="context.result.product.addToCartLabel"
+					></a>
 				</li>
 			</template>
 		</ul>

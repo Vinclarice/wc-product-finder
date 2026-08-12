@@ -18,6 +18,46 @@ trait WooCommerceProductFactory {
 	}
 
 	/**
+	 * A real variable product with one priced, in-stock variation. That
+	 * combination is the interesting one: the product *is* purchasable, but
+	 * not straight from a listing, because the shopper has to choose a
+	 * variation first. Anything simpler (a variable product with no
+	 * variations) is unpurchasable for the boring reason of having no price,
+	 * and wouldn't exercise the distinction.
+	 *
+	 * @param int[] $category_ids
+	 */
+	private static function make_variable_product( string $name, string $price, array $category_ids = array() ): \WC_Product_Variable {
+		$attribute = new WC_Product_Attribute();
+		$attribute->set_name( 'Size' );
+		$attribute->set_options( array( '2P', '4P' ) );
+		$attribute->set_visible( true );
+		$attribute->set_variation( true );
+
+		$parent = new \WC_Product_Variable();
+		$parent->set_name( $name );
+		$parent->set_status( 'publish' );
+		$parent->set_attributes( array( $attribute ) );
+		if ( ! empty( $category_ids ) ) {
+			$parent->set_category_ids( $category_ids );
+		}
+		$parent_id = $parent->save();
+
+		$variation = new \WC_Product_Variation();
+		$variation->set_parent_id( $parent_id );
+		$variation->set_attributes( array( 'size' => '2P' ) );
+		$variation->set_regular_price( $price );
+		$variation->set_stock_status( 'instock' );
+		$variation->save();
+
+		// Without this the parent's own price/stock data is still the
+		// pre-variation state, so is_purchasable() would report false.
+		\WC_Product_Variable::sync( $parent_id );
+
+		return wc_get_product( $parent_id );
+	}
+
+	/**
 	 * Creates (or reuses) a real WooCommerce global/taxonomy attribute and
 	 * term, assigns the term to the given already-saved product via the
 	 * taxonomy relationship, and returns a WC_Product_Attribute ready to pass

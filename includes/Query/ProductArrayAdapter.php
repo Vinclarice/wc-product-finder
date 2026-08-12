@@ -29,6 +29,16 @@ final class ProductArrayAdapter {
 	public static function to_array( WC_Product $product, array $attribute_map ): array {
 		$image_id = $product->get_image_id();
 
+		// Mirrors WooCommerce's own loop add-to-cart button logic
+		// (woocommerce_template_loop_add_to_cart): a product only gets the
+		// add_to_cart_button/ajax_add_to_cart treatment when it can actually
+		// be bought straight from a listing. A variable product can't — the
+		// shopper has to pick a variation first — so WooCommerce's
+		// wc-add-to-cart.js would fire an AJAX add that fails, instead of
+		// sending them to the product page to choose. Grouped and external
+		// products are the same shape of problem.
+		$purchasable = $product->is_purchasable() && $product->is_in_stock();
+
 		$result = array(
 			'id'           => $product->get_id(),
 			'name'         => $product->get_name(),
@@ -42,6 +52,13 @@ final class ProductArrayAdapter {
 				? wp_get_attachment_image_url( $image_id, 'woocommerce_thumbnail' )
 				: wc_placeholder_img_src(),
 			'inStock'      => $product->is_in_stock(),
+			// "Add to cart" for a simple in-stock product, "Select options"
+			// for a variable one, "Read more" when it can't be bought —
+			// WooCommerce's own wording, so the button never promises
+			// something the click can't deliver.
+			'addToCartLabel'        => $product->add_to_cart_text(),
+			'isPurchasable'         => $purchasable,
+			'supportsAjaxAddToCart' => $purchasable && $product->supports( 'ajax_add_to_cart' ),
 		);
 
 		foreach ( $attribute_map as $finder_attribute => $config ) {
