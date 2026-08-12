@@ -8,10 +8,12 @@
 	"files": [
 		"build",
 		"includes",
+		"src",
 		"vendor",
 		"product-finder.php",
 		"uninstall.php",
-		"readme.txt"
+		"readme.txt",
+		"LICENSE"
 	],
 	"scripts": {
 		"build": "cross-env WP_EXPERIMENTAL_MODULES=true wp-scripts build --webpack-copy-php --blocks-manifest",

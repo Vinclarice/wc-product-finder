@@ -2,13 +2,14 @@
 Contributors:      vinclarice
 Tags:               woocommerce, product finder, gutenberg, block, quiz
 Requires at least:  6.8
-Tested up to:      6.8
+Tested up to:      7.0
 Requires PHP:      7.4
+Requires Plugins:  woocommerce
 Stable tag:        1.0.0
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
-A Gutenberg-native product finder for WooCommerce block-theme stores: shoppers answer a few questions and see the best-matching products update instantly, with an honest explanation of the match.
+Shoppers answer a few questions and see the best-matching WooCommerce products update instantly, with an honest explanation of the match.
 
 == Description ==
 
@@ -34,6 +35,10 @@ Product Finder helps shoppers narrow a high-consideration WooCommerce catalogue 
 * Multiple Finder blocks can be placed on the same page, each scoped to its own category, without interfering with each other.
 * Fully functional with JavaScript disabled: a real `<form method="get">` submits to the same page and the server renders the same results, so filtered URLs stay bookmarkable and shareable either way.
 * No lead capture, ever, inside the finder itself — this plugin is about product fit, not funnels.
+
+= Source code =
+
+The block's JavaScript is built with `@wordpress/scripts` (webpack). The complete, unminified source for everything in `build/` ships with the plugin in its `src/` directory, alongside the build configuration in `package.json`. Run `npm install && npm run build` to reproduce the built files.
 
 == Installation ==
 

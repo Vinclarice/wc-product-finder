@@ -17,7 +17,16 @@ namespace ProductFinder\Finder;
  * kind of interaction-level tracking §12 reserves for the paid Finder
  * Insights tier — this stays a simple undercount by design, not a bug.
  *
- * One wp_options row keyed by category, same pattern as ConfigRepository.
+ * One wp_options row keyed by category, same pattern as ConfigRepository —
+ * but deliberately NOT autoloaded, unlike ConfigRepository's row. The
+ * distinction is read pattern, not size: ConfigRepository is read on every
+ * front-end render (render.php resolves the category's question set), so
+ * autoloading it saves a query on the requests that matter. These counters
+ * are only ever read back on the admin settings screen, while increment()
+ * below writes them on every render — autoloading them would put a row on
+ * every request site-wide, including admin and AJAX requests that have no
+ * finder block on them at all, to serve a read that happens once per admin
+ * page view.
  * No PII, no per-shopper data — just two integers per category.
  *
  * Accepted limitation: increment() is an unlocked get_option -> mutate ->
@@ -40,7 +49,11 @@ final class EventCounter {
 
 		$counts[ $category_slug ][ $event ] = $current + 1;
 
-		update_option( self::OPTION_NAME, $counts );
+		// Explicit false, not the default: this both creates the option
+		// unautoloaded and flips an already-autoloaded row from an earlier
+		// version on its next write, so existing installs self-heal without
+		// an upgrade routine.
+		update_option( self::OPTION_NAME, $counts, false );
 	}
 
 	public static function get_counts( string $category_slug ): array {
