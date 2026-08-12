@@ -70,6 +70,12 @@ No. Product Finder keeps only two aggregate counters per category (page views an
 
 Yes. Each Finder block instance is independent, even multiple instances for different categories on the same page.
 
+== Screenshots ==
+
+1. The finder as a shopper first meets it: a few plain questions above the current best matches, each result showing price, stock, and the specs that mattered.
+2. Answering "sleeps 4" narrows the results in place — no page reload, no submit button, no trip back to the server.
+3. The WooCommerce → Product Finder screen: an attribute-completeness snapshot of the category, attribute mapping, and the per-category question editor with answer choices discovered from the real catalogue.
+
 == Changelog ==
 
 = 1.0.0 =
