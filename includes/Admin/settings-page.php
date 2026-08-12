@@ -13,6 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 <div class="wrap">
 	<h1><?php esc_html_e( 'Product Finder', 'product-finder' ); ?></h1>
 
+	<?php // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Presence-only check on a redirect flag this screen sets itself after a nonce-verified save; it changes nothing. ?>
 	<?php if ( isset( $_GET['updated'] ) ) : ?>
 		<div class="notice notice-success"><p><?php esc_html_e( 'Mapping saved.', 'product-finder' ); ?></p></div>
 	<?php endif; ?>

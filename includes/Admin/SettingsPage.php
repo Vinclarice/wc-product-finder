@@ -61,15 +61,19 @@ final class SettingsPage {
 			return;
 		}
 
-		$raw_map = ( isset( $_POST['attribute_map'] ) && is_array( $_POST['attribute_map'] ) )
-			? wp_unslash( $_POST['attribute_map'] )
-			: array();
+		$raw_map = array();
+		if ( isset( $_POST['attribute_map'] ) && is_array( $_POST['attribute_map'] ) ) {
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized field by field by sanitize_submitted_map() just below; the sniff can't follow sanitization into a helper.
+			$raw_map = wp_unslash( $_POST['attribute_map'] );
+		}
 		$attribute_map = self::sanitize_submitted_map( $raw_map );
 		ConfigRepository::save_attribute_map( $category, $attribute_map );
 
-		$raw_questions = ( isset( $_POST['questions'] ) && is_array( $_POST['questions'] ) )
-			? wp_unslash( $_POST['questions'] )
-			: array();
+		$raw_questions = array();
+		if ( isset( $_POST['questions'] ) && is_array( $_POST['questions'] ) ) {
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized row by row by sanitize_submitted_questions() just below; same reason as above.
+			$raw_questions = wp_unslash( $_POST['questions'] );
+		}
 		$questions = self::sanitize_submitted_questions( $raw_questions, self::attribute_value_types() );
 		$effective_map = AttributeMapResolver::resolve( TentsTemplate::attribute_map(), $attribute_map );
 		ConfigRepository::save_questions( $category, self::questions_with_discovered_options( $category, $effective_map, $questions ) );
@@ -265,9 +269,12 @@ final class SettingsPage {
 			$categories = array();
 		}
 
-		$selected_category = isset( $_GET['category'] )
-			? sanitize_title( wp_unslash( $_GET['category'] ) )
-			: ( $categories[0]->slug ?? '' );
+		$selected_category = $categories[0]->slug ?? '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Chooses which category this read-only screen displays; it saves nothing, and maybe_save() does verify a nonce before writing.
+		if ( isset( $_GET['category'] ) ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Same read-only selection as above.
+			$selected_category = sanitize_title( wp_unslash( $_GET['category'] ) );
+		}
 
 		$selected_category_term = null;
 		foreach ( $categories as $category ) {

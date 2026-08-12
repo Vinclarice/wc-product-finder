@@ -10,6 +10,7 @@
 		"includes",
 		"src",
 		"vendor",
+		"composer.json",
 		"product-finder.php",
 		"uninstall.php",
 		"readme.txt",

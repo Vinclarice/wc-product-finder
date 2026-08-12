@@ -77,7 +77,12 @@ $match_options     = array(
 	'limit'      => 3,
 );
 
-$raw_get_answers = $_GET['product_finder'][ $product_category ] ?? array(); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only filtering, not a state-changing action.
+$raw_get_answers = array();
+// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only filtering of a public page, not a state-changing action; a nonce would break shareable filtered URLs, which are the point of reading answers from the query string at all.
+if ( isset( $_GET['product_finder'][ $product_category ] ) ) {
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Same as above; unslashed on this line, and every value is sanitized in the loop below, which the sniff can't follow across statements.
+	$raw_get_answers = wp_unslash( $_GET['product_finder'][ $product_category ] );
+}
 if ( ! is_array( $raw_get_answers ) ) {
 	$raw_get_answers = array();
 }
@@ -91,7 +96,8 @@ foreach ( $raw_get_answers as $key => $value ) {
 	if ( is_array( $value ) ) {
 		continue;
 	}
-	$answers[ sanitize_key( $key ) ] = sanitize_text_field( wp_unslash( (string) $value ) );
+	// Already unslashed above, as a whole array.
+	$answers[ sanitize_key( $key ) ] = sanitize_text_field( (string) $value );
 }
 
 if ( class_exists( 'WooCommerce' ) ) {
@@ -192,7 +198,7 @@ wp_interactivity_state(
 	)
 );
 ?>
-<div <?php echo get_block_wrapper_attributes(); ?> data-wp-interactive="product-finder" data-wp-context='<?php echo esc_attr( $instance_context ); ?>'>
+<div <?php echo get_block_wrapper_attributes(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Returns a ready-made attribute string that WordPress has already escaped internally; escaping it again would corrupt the markup. ?> data-wp-interactive="product-finder" data-wp-context='<?php echo esc_attr( $instance_context ); ?>'>
 	<h2 class="product-finder__heading">
 		<?php echo esc_html( $heading ); ?>
 	</h2>
