@@ -123,8 +123,11 @@ test.describe( 'Product Finder - without JavaScript', () => {
 		).toBe( true );
 
 		// The anchor, not the always-present <button> the JS path uses —
-		// both carry the same class and label.
-		await page.locator( 'a.product-finder__reset' ).click();
+		// both carry the same class and label. Navigation budget rather than
+		// action budget, for the same reason as the submit click above.
+		await page
+			.locator( 'a.product-finder__reset' )
+			.click( { timeout: 45_000 } );
 
 		await expect( page.locator( '.product-finder__result' ) ).toHaveCount(
 			RESULT_LIMIT
