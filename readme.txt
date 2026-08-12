@@ -1,5 +1,5 @@
 === Product Finder ===
-Contributors:      TODO-add-wordpress-org-username
+Contributors:      vinclarice
 Tags:               woocommerce, product finder, gutenberg, block, quiz
 Requires at least:  6.8
 Tested up to:      6.8

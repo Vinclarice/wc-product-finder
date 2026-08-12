@@ -3,6 +3,11 @@
 	"description": "A Gutenberg-native product finder for WooCommerce block-theme stores.",
 	"type": "wordpress-plugin",
 	"license": "GPL-2.0-or-later",
+	"authors": [
+		{
+			"name": "Vinclarice, LLC"
+		}
+	],
 	"require": {
 		"php": ">=7.4"
 	},

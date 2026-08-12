@@ -2,7 +2,7 @@
 	"name": "product-finder",
 	"version": "1.0.0",
 	"description": "A Gutenberg-native product finder for WooCommerce block-theme stores.",
-	"author": "The WordPress Contributors",
+	"author": "Vinclarice, LLC",
 	"license": "GPL-2.0-or-later",
 	"main": "build/index.js",
 	"files": [
@@ -10,6 +10,7 @@
 		"includes",
 		"vendor",
 		"product-finder.php",
+		"uninstall.php",
 		"readme.txt"
 	],
 	"scripts": {
