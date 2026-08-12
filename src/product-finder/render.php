@@ -195,6 +195,39 @@ wp_interactivity_state(
 		'hasResults' => static function () use ( $compute_results ) {
 			return ! empty( $compute_results()['products'] );
 		},
+		// What the live region announces. Fully translatable here, including
+		// correct plural forms for locales that have more than two, because
+		// this runs in PHP. view.js's client-side counterpart can't be:
+		// @wordpress/i18n isn't importable into a script module, the same
+		// documented limitation relaxationExplainer.js carries, so the
+		// post-hydration announcement stays English until that changes.
+		'resultsAnnouncement' => static function () use ( $compute_results ) {
+			$products = $compute_results()['products'];
+			$count    = count( $products );
+
+			if ( 0 === $count ) {
+				return __( 'No matching products', 'product-finder' );
+			}
+
+			// The names matter, and not just as a courtesy: results are
+			// capped at `limit`, so a count alone reads "3 matching products"
+			// for almost every answer a shopper gives. The text would never
+			// change, the DOM would never mutate, and a live region that
+			// doesn't mutate announces nothing at all — the whole feature
+			// would be inert. Naming the matches makes the region change
+			// exactly when what's on screen changes.
+			$names = implode(
+				', ',
+				array_map( static fn( $entry ) => $entry['product']['name'], $products )
+			);
+
+			return sprintf(
+				/* translators: 1: how many products match the shopper's answers. 2: comma-separated list of those product names. */
+				_n( '%1$d matching product: %2$s', '%1$d matching products: %2$s', $count, 'product-finder' ),
+				$count,
+				$names
+			);
+		},
 	)
 );
 ?>
@@ -203,7 +236,8 @@ wp_interactivity_state(
 		<?php echo esc_html( $heading ); ?>
 	</h2>
 
-	<form method="get" data-wp-on--submit="actions.preventFormSubmit">
+	<?php // Names the form landmark, so a screen-reader user tabbing or jumping by region knows what this group of controls is for. ?>
+	<form method="get" aria-label="<?php esc_attr_e( 'Product finder questions', 'product-finder' ); ?>" data-wp-on--submit="actions.preventFormSubmit">
 		<div class="product-finder__questions">
 			<?php foreach ( $questions as $question ) : ?>
 				<?php
@@ -263,21 +297,42 @@ wp_interactivity_state(
 		</noscript>
 	</form>
 
-	<div aria-live="polite" aria-atomic="true">
-		<p data-wp-bind--hidden="state.hasResults">
-			<?php esc_html_e( 'No products found for this category yet.', 'product-finder' ); ?>
-		</p>
+	<?php
+	// The live region is deliberately small: a screen-reader-only count plus
+	// the relaxation message, both a sentence at most. It used to wrap the
+	// whole results list with aria-atomic="true", which meant every single
+	// answer change re-announced the entire region — measured at 391
+	// characters, three full product cards with every spec, read out again
+	// on each keystroke-equivalent interaction. The list itself sits outside
+	// the region now; the count is what tells a screen-reader user that
+	// something changed, and they can then read the results at their own
+	// pace.
+	?>
+	<div class="product-finder__status" aria-live="polite">
+		<p class="product-finder__sr-only" data-wp-text="state.resultsAnnouncement"></p>
 
 		<p
 			class="product-finder__relaxation-message"
 			data-wp-bind--hidden="!state.results.relaxationMessage"
 			data-wp-text="state.results.relaxationMessage"
 		></p>
+	</div>
+
+	<div>
+		<p data-wp-bind--hidden="state.hasResults">
+			<?php esc_html_e( 'No products found for this category yet.', 'product-finder' ); ?>
+		</p>
 
 		<ul class="product-finder__results">
 			<template data-wp-each--result="state.results.products" data-wp-each-key="context.result.product.id">
 				<li class="product-finder__result">
-					<img data-wp-bind--src="context.result.product.image" data-wp-bind--alt="context.result.product.name" />
+					<?php
+					// Decorative on purpose: the product's name is the very
+					// next element, as a link. Giving the image the same name
+					// made a screen reader read every product twice — once as
+					// an image, once as the link.
+					?>
+					<img alt="" data-wp-bind--src="context.result.product.image" />
 					<a data-wp-bind--href="context.result.product.permalink" data-wp-text="context.result.product.name"></a>
 					<span class="product-finder__price" data-wp-text="context.result.product.priceLabel"></span>
 					<span class="product-finder__stock" data-wp-bind--hidden="!context.result.product.inStock">

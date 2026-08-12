@@ -210,6 +210,32 @@ test.describe( 'Product Finder - critical path', () => {
 		await expect( resultNames( page ) ).resolves.not.toHaveLength( 0 );
 	} );
 
+	test( 'announces the changed results to assistive tech, without reading back every card', async ( {
+		page,
+	} ) => {
+		await page.goto( FINDER_PAGE );
+
+		const region = page.locator( '.product-finder__status' );
+		await expect( region ).toHaveAttribute( 'aria-live', 'polite' );
+
+		const before = await region.innerText();
+		expect( before ).toContain( 'matching products' );
+
+		await page.getByLabel( CAPACITY_LABEL ).selectOption( '6' );
+
+		// The region has to actually mutate, or a live region announces
+		// nothing at all. It said only a count once, which never changed
+		// because results are capped at 3 — see render.php.
+		await expect.poll( async () => region.innerText() ).not.toBe( before );
+
+		// Short enough to be useful: the cards themselves live outside the
+		// region, so answering a question doesn't re-read every spec.
+		const after = await region.innerText();
+		expect( after.length ).toBeLessThan( 200 );
+		expect( after ).not.toContain( 'Capacity:' );
+		expect( after ).not.toContain( 'Add to cart' );
+	} );
+
 	test( 'the reset button clears every answer and restores the default results, including the controls themselves', async ( {
 		page,
 	} ) => {

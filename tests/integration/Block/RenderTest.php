@@ -313,6 +313,89 @@ final class RenderTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The live region has to stay small. It previously wrapped the whole
+	 * results list with aria-atomic="true", so every answer change
+	 * re-announced all three product cards and their specs — measured at 391
+	 * characters. The count is what signals the change now; the list is read
+	 * on demand.
+	 */
+	public function test_the_live_region_announces_a_count_and_excludes_the_results_list(): void {
+		$this->create_tent( 'Big Tent', 6 );
+		$this->create_tent( 'Small Tent', 2 );
+
+		$html   = $this->render_block();
+		$status = $this->status_markup( $html );
+
+		$this->assertStringContainsString( 'aria-live="polite"', $html );
+		$this->assertStringContainsString( '2 matching products', $status );
+		// The names are in the announcement on purpose (see render.php), but
+		// the cards themselves are not — no specs, no prices, no buttons.
+		$this->assertStringNotContainsString( 'product-finder__results', $status );
+		$this->assertStringNotContainsString( 'Capacity:', $status );
+		$this->assertStringNotContainsString( 'add_to_cart', $status );
+	}
+
+	/**
+	 * Regression test for a live region that could never fire: results are
+	 * capped at `limit`, so an announcement of only the count read "3
+	 * matching products" for nearly every answer, never mutated, and
+	 * therefore was never announced.
+	 */
+	public function test_the_announcement_changes_when_the_matching_products_change(): void {
+		$this->create_tent( 'Small Tent', 2 );
+		$this->create_tent( 'Big Tent', 6 );
+
+		$unfiltered = $this->status_markup( $this->render_block() );
+
+		$_GET['product_finder'] = array( 'tents' => array( 'capacity' => '4' ) );
+		$filtered               = $this->status_markup( $this->render_block() );
+
+		$this->assertNotSame( $unfiltered, $filtered );
+		$this->assertStringContainsString( 'Small Tent', $unfiltered );
+		$this->assertStringNotContainsString( 'Small Tent', $filtered );
+		$this->assertStringContainsString( 'Big Tent', $filtered );
+	}
+
+	public function test_the_announcement_uses_a_singular_noun_for_a_single_match(): void {
+		$this->create_tent( 'Big Tent', 6 );
+
+		$status = $this->status_markup( $this->render_block() );
+
+		$this->assertStringContainsString( '1 matching product:', $status );
+		$this->assertStringNotContainsString( 'matching products', $status );
+	}
+
+	public function test_the_announcement_says_so_when_nothing_matches(): void {
+		$status = $this->status_markup( $this->render_block() );
+
+		$this->assertStringContainsString( 'No matching products', $status );
+	}
+
+	/**
+	 * A result's image is decorative: the product name follows it as a link,
+	 * so naming the image too made screen readers read every product twice.
+	 */
+	public function test_result_images_are_marked_decorative(): void {
+		$this->create_tent( 'Big Tent', 6 );
+
+		$results = $this->results_markup( $this->render_block() );
+
+		$this->assertStringContainsString( 'alt=""', $results );
+		$this->assertStringNotContainsString( 'alt="Big Tent"', $results );
+	}
+
+	/**
+	 * The live region only, from its opening tag to its first closing </div>
+	 * — it holds two paragraphs and no nested div, so that boundary is exact.
+	 */
+	private function status_markup( string $html ): string {
+		$start = strpos( $html, '<div class="product-finder__status"' );
+		$this->assertNotFalse( $start, 'Expected a live-region wrapper in the rendered block.' );
+		$end = strpos( $html, '</div>', $start );
+		return substr( $html, $start, $end - $start );
+	}
+
+	/**
 	 * The server-rendered counterpart of
 	 * ProductArrayAdapterTest::test_a_variable_product_is_purchasable_but_not_over_ajax:
 	 * whatever the adapter reports has to actually reach the markup, since

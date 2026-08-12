@@ -182,3 +182,18 @@
 	margin-top: auto;
 	text-align: center;
 }
+
+// Visually hidden, still read by assistive tech. Defined here rather than
+// relying on the theme's .screen-reader-text: that class is a theme/core
+// convention, not a guarantee, and the block has to keep working in a theme
+// that never defines it.
+.product-finder__sr-only {
+	position: absolute;
+	clip-path: inset(50%);
+	margin: -1px;
+	border: 0;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	white-space: nowrap;
+}

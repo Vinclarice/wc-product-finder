@@ -57,6 +57,29 @@ const { state } = store( 'product-finder', {
 		get hasResults() {
 			return state.results.products.length > 0;
 		},
+		// Drives the block's aria-live region, so a screen-reader user is
+		// told the results changed without having the whole list read back
+		// to them each time. English-only for the same documented reason as
+		// relaxationExplainer.js: @wordpress/i18n cannot be imported into a
+		// script module. render.php registers a translatable PHP equivalent
+		// that covers the initial render and the no-JS path.
+		get resultsAnnouncement() {
+			const products = state.results.products;
+
+			if ( products.length === 0 ) {
+				return 'No matching products';
+			}
+
+			// Names, not just a count — see the PHP counterpart in
+			// render.php for why a bare count makes the live region inert.
+			const names = products
+				.map( ( entry ) => entry.product.name )
+				.join( ', ' );
+
+			return `${ products.length } matching ${
+				products.length === 1 ? 'product' : 'products'
+			}: ${ names }`;
+		},
 		// The value of whichever question control is currently evaluating
 		// this — needs to be derived rather than read directly off the
 		// answer object in the markup, since directive expressions don't
